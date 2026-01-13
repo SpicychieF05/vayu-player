@@ -1844,13 +1844,151 @@ class VayuPlayer {
           this.toastNotification.classList.remove('active');
       }, duration);
   }
+
+  // --- AUDIO TRACK LOGIC ---
+  
+  setupAudioTracks() {
+    this.audioSettingsModal = document.getElementById("audioSettingsModal");
+    this.closeAudioSettingsBtn = document.getElementById("closeAudioSettings");
+    this.audioTrackSelect = document.getElementById("audioTrackSelect");
+    this.audioBtn = document.getElementById("audioBtn");
+
+    // Hover support for Audio Button
+    let audioHoverTimeout;
+    
+    const showAudioSettings = () => {
+        clearTimeout(audioHoverTimeout);
+        this.openAudioSettings();
+    };
+
+    const hideAudioSettings = () => {
+        audioHoverTimeout = setTimeout(() => {
+            this.audioSettingsModal.classList.remove("active");
+        }, 300);
+    };
+
+    this.audioBtn.addEventListener("mouseenter", showAudioSettings);
+    this.audioBtn.addEventListener("mouseleave", hideAudioSettings);
+    
+    this.audioSettingsModal.addEventListener("mouseenter", () => {
+        clearTimeout(audioHoverTimeout);
+    });
+    
+    this.audioSettingsModal.addEventListener("mouseleave", hideAudioSettings);
+
+    this.audioBtn.addEventListener("click", () => {
+        showAudioSettings();
+    });
+
+    this.closeAudioSettingsBtn.addEventListener("click", () => {
+        this.audioSettingsModal.classList.remove("active");
+    });
+
+    // Track Selection
+    this.audioTrackSelect.addEventListener("change", (e) => {
+        this.setAudioTrack(e.target.value);
+    });
+
+    // Listen for when video loads to detect audio tracks
+    this.video.addEventListener("loadedmetadata", () => {
+        this.updateAudioTrackList();
+    });
+  }
+
+  openAudioSettings() {
+      this.updateAudioTrackList();
+      this.audioSettingsModal.classList.add("active");
+  }
+
+  updateAudioTrackList() {
+      // Clear existing options
+      this.audioTrackSelect.innerHTML = '<option value="-1">Default</option>';
+      
+      // Check for HLS audio tracks first
+      if (this.hlsInstance && this.hlsInstance.audioTracks && this.hlsInstance.audioTracks.length > 0) {
+          this.updateHLSAudioTrackList();
+          this.audioBtn.classList.add('active');
+          return;
+      }
+
+      // Check for native HTML5 audio tracks
+      const audioTracks = this.video.audioTracks;
+      if (audioTracks && audioTracks.length > 1) {
+          for (let i = 0; i < audioTracks.length; i++) {
+              const track = audioTracks[i];
+              const option = document.createElement('option');
+              option.value = i;
+              option.textContent = track.label || track.language || `Track ${i + 1}`;
+              if (track.enabled) {
+                  option.selected = true;
+              }
+              this.audioTrackSelect.appendChild(option);
+          }
+          this.audioBtn.classList.add('active');
+      } else {
+          // No audio tracks or only one
+          this.audioBtn.classList.remove('active');
+      }
+  }
+
+  updateHLSAudioTrackList() {
+      if (!this.hlsInstance || !this.hlsInstance.audioTracks) return;
+
+      const tracks = this.hlsInstance.audioTracks;
+      this.audioTrackSelect.innerHTML = '';
+
+      tracks.forEach((track, index) => {
+          const option = document.createElement('option');
+          option.value = `hls-${index}`;
+          option.textContent = track.name || track.lang || `Audio ${index + 1}`;
+          if (index === this.hlsInstance.audioTrack) {
+              option.selected = true;
+          }
+          this.audioTrackSelect.appendChild(option);
+      });
+  }
+
+  setAudioTrack(value) {
+      // Handle HLS audio tracks
+      if (value.startsWith('hls-')) {
+          const trackIndex = parseInt(value.replace('hls-', ''));
+          this.setHLSAudioTrack(trackIndex);
+          return;
+      }
+
+      // Handle native HTML5 audio tracks
+      const audioTracks = this.video.audioTracks;
+      if (!audioTracks) return;
+
+      const trackIndex = parseInt(value);
+      
+      // Disable all tracks first
+      for (let i = 0; i < audioTracks.length; i++) {
+          audioTracks[i].enabled = false;
+      }
+
+      // Enable selected track
+      if (trackIndex >= 0 && trackIndex < audioTracks.length) {
+          audioTracks[trackIndex].enabled = true;
+          this.showToast(`Audio: ${audioTracks[trackIndex].label || audioTracks[trackIndex].language || 'Track ' + (trackIndex + 1)}`);
+      }
+  }
+
+  setHLSAudioTrack(trackIndex) {
+      if (!this.hlsInstance) return;
+
+      this.hlsInstance.audioTrack = trackIndex;
+      const track = this.hlsInstance.audioTracks[trackIndex];
+      this.showToast(`Audio: ${track.name || track.lang || 'Track ' + (trackIndex + 1)}`);
+  }
 } // End Class
 
 // Initialize player when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
   window.vayuPlayer = new VayuPlayer();
-  // Init captions
+  // Init captions and audio tracks
   window.vayuPlayer.setupCaptions();
+  window.vayuPlayer.setupAudioTracks();
 });
 
 // Service Worker for offline support (optional enhancement)

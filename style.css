@@ -1533,6 +1533,11 @@ video::cue {
     background: rgba(10, 132, 255, 0.15);
 }
 
+#audioBtn.active {
+    color: var(--accent-primary);
+    background: rgba(10, 132, 255, 0.15);
+}
+
 /* Settings Modal */
 .settings-modal {
     position: absolute;

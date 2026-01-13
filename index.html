@@ -253,6 +253,15 @@
                                     </svg>
                                 </button>
 
+                                <!-- Audio Track Button -->
+                                <button class="ctrl-btn" id="audioBtn" title="Audio Track (A)">
+                                    <svg viewBox="0 0 24 24" fill="none">
+                                        <path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="2"/>
+                                        <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </button>
+
                                 <!-- Fullscreen -->
                                 <button class="ctrl-btn" id="fullscreenBtn" title="Fullscreen (F)">
                                     <svg class="icon-expand" viewBox="0 0 24 24" fill="none">
@@ -353,6 +362,26 @@
                                     <input type="range" id="captionHorizontal" class="setting-slider" min="0" max="100" value="50">
                                     <span id="captionHorizontalVal">50%</span>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Audio Settings Modal -->
+                    <div class="settings-modal" id="audioSettingsModal">
+                        <div class="settings-header">
+                            <h3>Audio Track</h3>
+                            <button class="close-settings" id="closeAudioSettings">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        
+                        <div class="settings-content">
+                            <div class="setting-group">
+                                <label>Audio Track</label>
+                                <select id="audioTrackSelect" class="setting-select">
+                                    <option value="default">Default</option>
+                                </select>
                             </div>
                         </div>
                     </div>
