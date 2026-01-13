@@ -4,7 +4,7 @@
 
 ![Badge](https://img.shields.io/badge/Experience-Cinematic-0A84FF?style=for-the-badge&logoColor=white)
 ![Badge](https://img.shields.io/badge/Design-Premium%20Dark-000000?style=for-the-badge)
-![Badge](https://img.shields.io/badge/Performance-High%20Fidelity-success?style=for-the-badge)
+![Badge](https://img.shields.io/badge/Deploy-Vercel%20Ready-success?style=for-the-badge)
 
 _Experience the future of web streaming. Immersive. Elegant. Powerful._
 
@@ -12,93 +12,172 @@ _Experience the future of web streaming. Immersive. Elegant. Powerful._
 
 </div>
 
+---
+
 ## 🌌 Overview
 
-**Vayu Player** isn't just a video player; it's a **viewing sanctuary**. Crafted with a meticulous "Dark Glass" aesthetic inspired by next-generation operating systems, every pixel is polished to ensure your content is the hero. Whether you are streaming high-bitrate movies or quick clips, Vayu delivers smoother playback, smarter buffering, and a distraction-free environment that feels premium and alive.
+**Vayu Player** isn't just a video player; it's a **viewing sanctuary**. Crafted with a meticulous "Dark Glass" aesthetic inspired by next-generation operating systems, every pixel is polished to ensure your content is the hero. Whether you're streaming high-bitrate movies or quick clips, Vayu delivers smoother playback, smarter buffering, and a distraction-free environment.
 
 ---
 
-## ✨ Features that Wow
+## ✨ Features
 
-### 💎 **Design & Aesthetics**
+### 💎 **Premium Design**
 
-- **Glassmorphism UI**: Controls float on a beautiful dark blur, interacting with your video content.
-- **Micro-Animations**: Buttons breathe, sliders glide, and menus fade with silky smooth transitions.
-- **Focus Mode**: The interface intelligently fades away, leaving you alone with your story.
+- **Glassmorphism UI** — Controls float on elegant dark blur
+- **Micro-Animations** — Smooth transitions and hover effects
+- **Focus Mode** — Interface fades away for distraction-free viewing
+- **Fully Responsive** — Optimized for mobile, tablet, and desktop
 
 ### 🎥 **Pro-Grade Streaming**
 
-- **Universal Format Support**: Seamlessly plays **HLS (.m3u8)** and **DASH (.mpd)** streams.
-- **Smart Network Engine**: Real-time bandwidth monitoring adapts quality and buffering strategies instantly.
-- **Bypass Restrictions**: Integrated proxy server handles CORS issues effortlessly, unlocking content from anywhere.
+- **Universal Format Support** — HLS (`.m3u8`) and DASH (`.mpd`) streams
+- **Smart Buffering** — Real-time bandwidth monitoring
+- **CORS Bypass Proxy** — Stream from any source
 
 ### 🎛️ **Ultimate Control**
 
-- **Custom Captions Overlay**: Not just on/off. **Position your subtitles** anywhere on screen (vertical/horizontal sliders), adjust size, color, and opacity to match your reading comfort.
-- **External Subtitles**: Have a `.srt` or `.vtt` file? Just load it in.
-- **Picture-in-Picture (PiP)**: Keep Vayu floating while you work on other tabs.
-- **History**: Jump right back into your last 10 watched videos.
+- **🎵 Audio Track Switching** — Select between multiple audio languages
+- **📝 Custom Captions** — Position anywhere on screen, adjust size/color/opacity
+- **📂 External Subtitles** — Load local `.srt` or `.vtt` files
+- **🖼️ Picture-in-Picture** — Keep watching while multitasking
+
+### 🔖 **Bookmark & History**
+
+- **📌 Pin Videos** — Save favorites with custom names
+- **🕐 Watch History** — Quick access to recent videos
+- **🗑️ Individual Delete** — Remove specific items from history
+- **💾 Persistent Storage** — All preferences saved locally
 
 ---
 
-## 🧭 User Guide: Mastering Vayu
+## 🧭 User Guide
 
-### 1. **Loading Content**
+### 🎬 **Playing a Video**
 
-- **Direct Stream**: Paste any `.mp4`, `.m3u8`, or `.mpd` link into the glowing search bar at the top designated for URL input.
-- **Proxy Mode**: If a link fails due to CORS (security errors), simply toggle the **Proxy Switch** in the server settings (if configured) or rely on our backend smart handling.
-- **Recent History**: Click the "History" icon to revisit your watching sessions instantly.
+1. Paste any video URL (`.mp4`, `.m3u8`, `.mpd`) into the input field
+2. Toggle **"Use Proxy"** if the video has CORS restrictions
+3. Click **Play** or press `Enter`
 
-### 2. **The Viewing Experience**
+### 🔖 **Pinning Videos**
 
-- **Play/Pause**: Click the center screen or press `Space`.
-- **Seek**: Drag the vibrant blue timeline or use `←` / `→` arrow keys.
-- **Volume**: Hover over the speaker icon to reveal the sleek vertical slider.
-- **Fullscreen**: Double-click the video or press `F` for total immersion.
+1. Play some videos to build your history
+2. Hover over any video in **"Recently Played"**
+3. Click the **bookmark icon** (🔖) to pin
+4. Enter a custom name like "Favorite Movie"
+5. Find it in the **Pinned** section at the top!
 
-### 3. **Advanced Captioning**
+### 🎵 **Switching Audio Tracks**
 
-- Click the **CC** button to unlock the Caption Studio.
-- **Upload**: Use "Choose File" to load local subtitles.
-- **Customize**:
-  - **Size**: Make text readable.
-  - **Position**: Use the **Vertical** and **Horizontal** sliders to move text away from important video details.
-  - **Style**: Choose high-contrast (Yellow/Green) or classic White.
+1. Load an HLS stream with multiple audio tracks
+2. Hover over the **Audio button** (🎵) in controls
+3. Select your preferred language from the dropdown
 
----
+### 📝 **Customizing Captions**
 
-## ⌨️ Shortcuts Reference
-
-| Key                             | Action                 |
-| :------------------------------ | :--------------------- |
-| <kbd>Space</kbd> / <kbd>K</kbd> | Play / Pause           |
-| <kbd>F</kbd>                    | Toggle Fullscreen      |
-| <kbd>M</kbd>                    | Mute Toggle            |
-| <kbd>J</kbd> / <kbd>L</kbd>     | Seek -10s / +10s       |
-| <kbd>←</kbd> / <kbd>→</kbd>     | Precise Seek -5s / +5s |
-| <kbd>↑</kbd> / <kbd>↓</kbd>     | Volume Adjust          |
-| <kbd>0</kbd> .. <kbd>9</kbd>    | Jump to 0% .. 90%      |
-| <kbd>P</kbd>                    | Picture-in-Picture     |
+1. Hover over the **CC button** in controls
+2. Adjust:
+   - **Font Size** — Make text larger/smaller
+   - **Position** — Move text anywhere on screen
+   - **Color** — Choose from preset colors
+   - **Background** — Adjust opacity
+3. Load external `.srt`/`.vtt` files if needed
 
 ---
 
-## 🛠️ Technical Setup
+## ⌨️ Keyboard Shortcuts
 
-Quickly get Vayu running on your local machine.
+| Key                         | Action             |
+| :-------------------------- | :----------------- |
+| <kbd>Space</kbd>            | Play / Pause       |
+| <kbd>F</kbd>                | Toggle Fullscreen  |
+| <kbd>M</kbd>                | Mute Toggle        |
+| <kbd>←</kbd> / <kbd>→</kbd> | Seek ±10 seconds   |
+| <kbd>↑</kbd> / <kbd>↓</kbd> | Volume Up / Down   |
+| <kbd>0</kbd> - <kbd>9</kbd> | Jump to 0% - 90%   |
+| <kbd>P</kbd>                | Picture-in-Picture |
 
-### Prerequisites
+---
 
-- Node.js installed.
+## 🚀 Deployment
 
-### Quick Start
+### **Vercel (Recommended)**
+
+This project is Vercel-ready out of the box!
 
 ```bash
-# 1. Start the backend proxy (Essential for bypassing CORS)
+# 1. Push to GitHub
+git add .
+git commit -m "Deploy Vayu Player"
+git push origin main
+
+# 2. Import in Vercel
+# - Go to vercel.com
+# - Import your GitHub repo
+# - Deploy!
+```
+
+### **Local Development**
+
+```bash
+# Start the proxy server
 node server.js
 
-# 2. Access the player
-# Open your browser and navigate to:
-http://localhost:8000
+# Open in browser
+http://localhost:4000
+```
+
+---
+
+## 📁 Project Structure
+
+```
+vayu-player/
+├── index.html          # Main HTML
+├── style.css           # All styles
+├── player.js           # Player logic
+├── server.js           # Local proxy server
+├── api/
+│   └── proxy.js        # Vercel serverless function
+├── vercel.json         # Vercel config
+├── package.json        # Dependencies
+└── README.md           # This file
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology             | Purpose          |
+| :--------------------- | :--------------- |
+| HTML5, CSS3, JS (ES6+) | Core application |
+| hls.js                 | HLS streaming    |
+| dash.js                | DASH streaming   |
+| Node.js                | Proxy server     |
+| Vercel                 | Deployment       |
+
+---
+
+## 📱 Responsive Design
+
+Vayu Player is optimized for all screen sizes:
+
+- **📱 Mobile** — Touch-friendly controls, always-visible action buttons
+- **📱 Tablet** — Optimized grid layouts
+- **💻 Desktop** — Full feature set with hover interactions
+
+---
+
+## 🎨 Customization
+
+Edit CSS variables in `style.css`:
+
+```css
+:root {
+  --accent-primary: #0a84ff; /* Brand color */
+  --bg-deep: #000000; /* Background */
+  --radius-lg: 16px; /* Corner radius */
+}
 ```
 
 ---
@@ -106,6 +185,9 @@ http://localhost:8000
 <div align="center">
 
 _Engineered for Perfection._
+
 **Chirantan Mallick** © 2026
+
+[Codiverse Web Services](https://codiverse-dev.vercel.app/)
 
 </div>
