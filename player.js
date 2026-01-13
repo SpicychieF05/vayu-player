@@ -1548,11 +1548,17 @@ class StreamFlowPlayer {
     this.captionColors = document.getElementById("captionColors");
     this.captionBgOpacity = document.getElementById("captionBgOpacity");
     this.captionBgVal = document.getElementById("captionBgVal");
+    this.captionVertical = document.getElementById("captionVertical");
+    this.captionVerticalVal = document.getElementById("captionVerticalVal");
+    this.captionHorizontal = document.getElementById("captionHorizontal");
+    this.captionHorizontalVal = document.getElementById("captionHorizontalVal");
     this.ccBtn = document.getElementById("ccBtn");
     this.toastNotification = document.getElementById("toastNotification");
     this.subtitleFileInput = document.getElementById("subtitleFileInput");
     this.subtitleUploadBtn = document.getElementById("subtitleUploadBtn");
     this.subtitleFileName = document.getElementById("subtitleFileName");
+    this.customCaptionContainer = document.getElementById("customCaptionContainer");
+    this.customCaptionText = document.getElementById("customCaptionText");
 
     // CC Button always opens settings now (to allow file upload)
     this.ccBtn.addEventListener("click", () => {
@@ -1571,6 +1577,8 @@ class StreamFlowPlayer {
     // Styling Inputs
     this.captionSize.addEventListener("input", (e) => this.updateCaptionStyle("size", e.target.value));
     this.captionBgOpacity.addEventListener("input", (e) => this.updateCaptionStyle("bg", e.target.value));
+    this.captionVertical.addEventListener("input", (e) => this.updateCaptionStyle("vertical", e.target.value));
+    this.captionHorizontal.addEventListener("input", (e) => this.updateCaptionStyle("horizontal", e.target.value));
     
     // Colors
     this.captionColors.querySelectorAll(".color-opt").forEach(btn => {
@@ -1632,10 +1640,24 @@ class StreamFlowPlayer {
         
         this.video.appendChild(track);
         
-        // Enable the track
+        // Enable the track and set up cue change listener for custom overlay
         setTimeout(() => {
             const textTrack = this.video.textTracks[this.video.textTracks.length - 1];
-            textTrack.mode = 'showing';
+            textTrack.mode = 'hidden'; // Hide native, use custom overlay
+            
+            // Listen for cue changes to update custom overlay
+            textTrack.oncuechange = () => {
+                const activeCues = textTrack.activeCues;
+                if (activeCues && activeCues.length > 0) {
+                    const cueText = Array.from(activeCues).map(c => c.text).join('\n');
+                    this.customCaptionText.textContent = cueText;
+                    this.customCaptionText.classList.add('active');
+                } else {
+                    this.customCaptionText.classList.remove('active');
+                }
+            };
+            
+            this.activeTextTrack = textTrack;
             this.updateTrackList();
             this.ccBtn.classList.add('active');
             this.showToast('Subtitles loaded: ' + fileName);
@@ -1728,13 +1750,19 @@ class StreamFlowPlayer {
 
   updateCaptionStyle(prop, value) {
     if (prop === "size") {
-        this.video.style.setProperty("--caption-size", `${value / 100 * 1.5}rem`);
+        this.customCaptionText.style.setProperty("--caption-size", `${value / 100 * 1.5}rem`);
         this.captionSizeVal.textContent = `${value}%`;
     } else if (prop === "bg") {
-        this.video.style.setProperty("--caption-bg", `rgba(0, 0, 0, ${value / 100})`);
+        this.customCaptionText.style.setProperty("--caption-bg", `rgba(0, 0, 0, ${value / 100})`);
         this.captionBgVal.textContent = `${value}%`;
     } else if (prop === "color") {
-        this.video.style.setProperty("--caption-color", value);
+        this.customCaptionText.style.setProperty("--caption-color", value);
+    } else if (prop === "vertical") {
+        this.customCaptionText.style.setProperty("--caption-y", `${value}%`);
+        this.captionVerticalVal.textContent = `${value}%`;
+    } else if (prop === "horizontal") {
+        this.customCaptionText.style.setProperty("--caption-x", `${value}%`);
+        this.captionHorizontalVal.textContent = `${value}%`;
     }
     this.saveCaptionStyle();
   }
@@ -1743,7 +1771,9 @@ class StreamFlowPlayer {
     const style = {
         size: this.captionSize.value,
         bg: this.captionBgOpacity.value,
-        color: this.captionColors.querySelector(".active")?.dataset.color || "#FFFFFF"
+        color: this.captionColors.querySelector(".active")?.dataset.color || "#FFFFFF",
+        vertical: this.captionVertical.value,
+        horizontal: this.captionHorizontal.value
     };
     localStorage.setItem("vayu_caption_style", JSON.stringify(style));
   }
@@ -1752,12 +1782,17 @@ class StreamFlowPlayer {
     // Load Style
     const savedStyle = JSON.parse(localStorage.getItem("vayu_caption_style"));
     if (savedStyle) {
-        this.captionSize.value = savedStyle.size;
-        this.captionBgOpacity.value = savedStyle.bg;
-        // Apply
-        this.updateCaptionStyle("size", savedStyle.size);
-        this.updateCaptionStyle("bg", savedStyle.bg);
-        this.updateCaptionStyle("color", savedStyle.color);
+        this.captionSize.value = savedStyle.size || 100;
+        this.captionBgOpacity.value = savedStyle.bg || 50;
+        this.captionVertical.value = savedStyle.vertical || 90;
+        this.captionHorizontal.value = savedStyle.horizontal || 50;
+        
+        // Apply all styles
+        this.updateCaptionStyle("size", savedStyle.size || 100);
+        this.updateCaptionStyle("bg", savedStyle.bg || 50);
+        this.updateCaptionStyle("color", savedStyle.color || "#FFFFFF");
+        this.updateCaptionStyle("vertical", savedStyle.vertical || 90);
+        this.updateCaptionStyle("horizontal", savedStyle.horizontal || 50);
         
         // Update UI hooks
         const colorBtn = Array.from(this.captionColors.children).find(b => b.dataset.color === savedStyle.color);
