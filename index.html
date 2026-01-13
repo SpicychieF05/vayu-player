@@ -98,6 +98,11 @@
                     <!-- Video Element -->
                     <video id="videoPlayer" class="video-element" preload="auto" playsinline></video>
 
+                    <!-- Custom Caption Overlay -->
+                    <div class="custom-caption-container" id="customCaptionContainer">
+                        <div class="custom-caption-text" id="customCaptionText"></div>
+                    </div>
+
                     <!-- Buffer Indicator (shows when paused and buffering) -->
                     <div class="buffer-indicator" id="bufferIndicator">
                         <div class="buffer-indicator-dot"></div>
@@ -378,6 +383,24 @@
                     <div class="setting-control">
                         <input type="range" id="captionBgOpacity" class="setting-slider" min="0" max="100" value="50">
                         <span id="captionBgVal">50%</span>
+                    </div>
+                </div>
+
+                <div class="settings-divider"></div>
+
+                <div class="setting-group">
+                    <label>Vertical Position</label>
+                    <div class="setting-control">
+                        <input type="range" id="captionVertical" class="setting-slider" min="0" max="100" value="90">
+                        <span id="captionVerticalVal">90%</span>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label>Horizontal Position</label>
+                    <div class="setting-control">
+                        <input type="range" id="captionHorizontal" class="setting-slider" min="0" max="100" value="50">
+                        <span id="captionHorizontalVal">50%</span>
                     </div>
                 </div>
             </div>
