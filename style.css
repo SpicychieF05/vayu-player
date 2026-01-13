@@ -1752,3 +1752,43 @@ video::cue {
     text-overflow: ellipsis;
     max-width: 150px;
 }
+
+/* Custom Caption Overlay */
+.custom-caption-container {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 15;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.custom-caption-text {
+    position: absolute;
+    left: var(--caption-x, 50%);
+    top: var(--caption-y, 90%);
+    transform: translate(-50%, -50%);
+    max-width: 80%;
+    padding: 8px 16px;
+    background: var(--caption-bg, rgba(0, 0, 0, 0.6));
+    color: var(--caption-color, #FFFFFF);
+    font-size: var(--caption-size, 1.5rem);
+    font-weight: 500;
+    text-align: center;
+    border-radius: 4px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    line-height: 1.4;
+    white-space: pre-wrap;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.custom-caption-text.active {
+    opacity: 1;
+}
+
+/* Hide native captions when using custom overlay */
+video::cue {
+    opacity: 0 !important;
+}
