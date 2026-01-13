@@ -359,9 +359,13 @@ class VayuPlayer {
     // Check if proxy should be used
     const useProxy = this.useProxyCheckbox && this.useProxyCheckbox.checked;
     if (useProxy) {
-      // Use local proxy server (run server.js with node)
-      url = `http://localhost:4000/proxy?url=${encodeURIComponent(url)}`;
-      console.log("🔄 Using local proxy server for URL");
+      // Use proxy server
+      // If running via server.js or Vercel, relative path works.
+      // If running as static file, this needs full URL.
+      const isStatic = window.location.protocol === 'file:';
+      const proxyBase = isStatic ? 'http://localhost:4000/proxy' : '/proxy';
+      url = `${proxyBase}?url=${encodeURIComponent(url)}`;
+      console.log("🔄 Using proxy for URL");
     }
 
     this.currentUrl = url;
