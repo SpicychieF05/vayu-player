@@ -1532,10 +1532,11 @@ video::cue {
 
 /* Settings Modal */
 .settings-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.95);
+    position: absolute;
+    bottom: 80px; /* Above controls */
+    right: 20px;
+    /* top/left/transform removed to stop centering */
+    transform: translateY(10px) scale(0.95);
     width: 320px;
     background: rgba(28, 28, 30, 0.85); /* Dark Glass */
     backdrop-filter: blur(40px);
@@ -1547,12 +1548,13 @@ video::cue {
     opacity: 0;
     visibility: hidden;
     transition: all var(--transition-normal);
+    transform-origin: bottom right;
 }
 
 .settings-modal.active {
     opacity: 1;
     visibility: visible;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translateY(0) scale(1);
 }
 
 .settings-header {
