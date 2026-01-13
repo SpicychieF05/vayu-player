@@ -894,59 +894,62 @@ body {
 }
 
 /* Volume */
-.volume-container {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+/* Custom Volume Slider */
+.slider {
+  --slider-width: 100px;
+  --slider-height: 6px;
+  --slider-bg: rgba(255, 255, 255, 0.2);
+  --slider-border-radius: 999px;
+  --level-color: var(--accent-primary);
+  --level-transition-duration: .1s;
+  --icon-margin: 15px;
+  --icon-color: var(--text-secondary);
+  --icon-size: 24px;
 }
 
-.ctrl-btn .icon-volume-low,
-.ctrl-btn .icon-volume-mute {
-  display: none;
-}
-
-.volume-container.low .icon-volume-high,
-.volume-container.muted .icon-volume-high,
-.volume-container.muted .icon-volume-low {
-  display: none;
-}
-
-.volume-container.low .icon-volume-low,
-.volume-container.muted .icon-volume-mute {
-  display: block;
-}
-
-.volume-slider-wrapper {
-  position: relative;
-  width: 0;
-  overflow: hidden;
-  transition: width var(--transition-normal);
-}
-
-.volume-container:hover .volume-slider-wrapper {
-  width: 80px;
-}
-
-.volume-slider {
-  width: 80px;
-  height: 4px;
-  appearance: none;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
+.slider {
   cursor: pointer;
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: center;
 }
 
+.slider .volume {
+  display: inline-block;
+  vertical-align: top;
+  margin-right: var(--icon-margin);
+  color: var(--icon-color);
+  width: var(--icon-size);
+  height: auto;
+  transition: color 0.2s ease;
+}
 
+.slider .volume:hover {
+    color: var(--text-primary);
+}
 
-.volume-fill {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 4px;
-  background: var(--accent-primary);
-  border-radius: 2px;
-  pointer-events: none;
+.slider .level {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: var(--slider-width);
+  height: var(--slider-height);
+  background: var(--slider-bg);
+  overflow: hidden;
+  border-radius: var(--slider-border-radius);
+  transition: height var(--level-transition-duration);
+  cursor: inherit;
+}
+
+.slider .level::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 0;
+  height: 0;
+  box-shadow: -200px 0 0 200px var(--level-color);
+}
+
+.slider:hover .level {
+  height: 10px; /* Slightly thicker on hover */
 }
 
 /* Time Display */

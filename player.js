@@ -1120,16 +1120,15 @@ class StreamFlowPlayer {
 
   updateVolumeUI() {
     const volume = this.video.muted ? 0 : this.video.volume;
-    const container = this.muteBtn.closest(".volume-container");
-
-    this.volumeSlider.value = volume;
-    this.volumeFill.style.width = `${volume * 100}%`;
-
-    container.classList.remove("low", "muted");
-    if (volume === 0 || this.video.muted) {
-      container.classList.add("muted");
-    } else if (volume < 0.5) {
-      container.classList.add("low");
+    
+    // Update slider value
+    if (this.volumeSlider) {
+        this.volumeSlider.value = volume;
+        
+        // Update CSS variable if needed for specific browser tricks, 
+        // but the box-shadow trick works automatically with native value in most cases 
+        // or requires no JS updates if configured correctly for simple inputs.
+        // Actually, for the box-shadow trick to check "fill", it works natively with the thumb position.
     }
   }
 
