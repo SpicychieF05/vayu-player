@@ -1,9 +1,9 @@
 /**
- * StreamFlow Video Player
+ * VayuPlay Video Player
  * High-quality streaming video player with smart buffering
  */
 
-class StreamFlowPlayer {
+class VayuPlayer {
   constructor() {
     // DOM Elements
     this.urlSection = document.getElementById("urlSection");
@@ -1413,7 +1413,7 @@ class StreamFlowPlayer {
   }
 
   saveToHistory(url) {
-    let history = JSON.parse(localStorage.getItem('streamflow_history') || '[]');
+    let history = JSON.parse(localStorage.getItem('vayu_player_history') || '[]');
     // Remove if already exists
     history = history.filter(item => item.url !== url);
     // Add to beginning
@@ -1423,7 +1423,7 @@ class StreamFlowPlayer {
     });
     // Keep last 10
     history = history.slice(0, 10);
-    localStorage.setItem('streamflow_history', JSON.stringify(history));
+    localStorage.setItem('vayu_player_history', JSON.stringify(history));
     this.renderHistory();
   }
 
@@ -1432,7 +1432,7 @@ class StreamFlowPlayer {
   }
 
   renderHistory() {
-    const history = JSON.parse(localStorage.getItem('streamflow_history') || '[]');
+    const history = JSON.parse(localStorage.getItem('vayu_player_history') || '[]');
     if (history.length === 0) {
         this.recentSection.style.display = 'none';
         return;
@@ -1472,7 +1472,7 @@ class StreamFlowPlayer {
   }
 
   clearHistory() {
-    localStorage.removeItem('streamflow_history');
+    localStorage.removeItem('vayu_player_history');
     this.renderHistory();
   }
 
@@ -1848,9 +1848,9 @@ class StreamFlowPlayer {
 
 // Initialize player when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  window.streamFlow = new StreamFlowPlayer();
+  window.vayuPlayer = new VayuPlayer();
   // Init captions
-  window.streamFlow.setupCaptions();
+  window.vayuPlayer.setupCaptions();
 });
 
 // Service Worker for offline support (optional enhancement)

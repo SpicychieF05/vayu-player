@@ -1,5 +1,5 @@
 /**
- * StreamFlow Proxy Server
+ * Vayu Player Proxy Server
  * Bypasses CORS and hotlink restrictions for video streaming
  */
 
@@ -147,7 +147,7 @@ function proxyVideo(videoUrl, clientReq, clientRes) {
                 'Content-Type': proxyRes.headers['content-type'] || 'video/mp4',
                 'Accept-Ranges': 'bytes',
                 'Cache-Control': 'max-age=3600, public', // Cache for 1 hour
-                'X-Proxy-By': 'StreamFlow'
+                'X-Proxy-By': 'Vayu Player'
             };
 
             if (proxyRes.headers['content-length']) {
@@ -211,7 +211,7 @@ server.listen(PORT, () => {
     console.log(`
 ╔═════════════════════════════════════════════════════════╗
 ║                                                         ║
-║   StreamFlow Proxy Server                               ║
+║   Vayu Player Proxy Server                              ║
 ║                                                         ║
 ║   Open:   http://localhost:${PORT}                      ║
 ║   Proxy:  http://localhost:${PORT}/proxy?url=VIDEO_URL  ║
