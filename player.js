@@ -567,18 +567,33 @@ class StreamFlowPlayer {
       this.video.load();
     } else if (typeof Hls !== "undefined") {
       // Use hls.js for other browsers
-      const hls = new Hls({
+      this.hlsInstance = new Hls({
         maxBufferLength: 60,
         maxMaxBufferLength: 120,
         maxBufferSize: 60 * 1000 * 1000, // 60MB
         maxBufferHole: 0.5,
+        enableWebVTT: true,
+        enableCEA708Captions: true,
       });
-      hls.loadSource(url);
-      hls.attachMedia(this.video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      this.hlsInstance.loadSource(url);
+      this.hlsInstance.attachMedia(this.video);
+      
+      this.hlsInstance.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         this.hideLoading();
+        // Check for subtitle tracks in HLS manifest
+        if (this.hlsInstance.subtitleTracks && this.hlsInstance.subtitleTracks.length > 0) {
+          console.log("📝 HLS Subtitle tracks found:", this.hlsInstance.subtitleTracks);
+          this.hlsSubtitleTracks = this.hlsInstance.subtitleTracks;
+          this.updateHLSTrackList();
+        }
       });
-      hls.on(Hls.Events.ERROR, (event, data) => {
+
+      this.hlsInstance.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, () => {
+        this.hlsSubtitleTracks = this.hlsInstance.subtitleTracks;
+        this.updateHLSTrackList();
+      });
+      
+      this.hlsInstance.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
           this.showError("HLS stream error: " + data.type);
         }
@@ -587,6 +602,31 @@ class StreamFlowPlayer {
       this.showError(
         "HLS playback not supported. Hls.js library failed to load."
       );
+    }
+  }
+
+  updateHLSTrackList() {
+    if (!this.hlsSubtitleTracks || this.hlsSubtitleTracks.length === 0) return;
+    
+    this.captionTrackSelect.innerHTML = '<option value="off">Off</option>';
+    this.ccBtn.style.display = "flex";
+    
+    this.hlsSubtitleTracks.forEach((track, index) => {
+      const opt = document.createElement("option");
+      opt.value = `hls-${index}`;
+      opt.textContent = track.name || track.lang || `Subtitle ${index + 1}`;
+      this.captionTrackSelect.appendChild(opt);
+    });
+    
+    // Show toast that captions are available
+    this.showToast("Captions available");
+  }
+
+  setHLSTrack(index) {
+    if (this.hlsInstance) {
+      this.hlsInstance.subtitleTrack = index;
+      this.hlsInstance.subtitleDisplay = true;
+      this.ccBtn.classList.add("active");
     }
   }
 
@@ -1497,11 +1537,259 @@ class StreamFlowPlayer {
     }
     return `${m}:${s.toString().padStart(2, "0")}`;
   }
-}
+  // --- CAPTION LOGIC ---
+
+  setupCaptions() {
+    this.captionSettingsModal = document.getElementById("captionSettingsModal");
+    this.closeCaptionSettingsBtn = document.getElementById("closeCaptionSettings");
+    this.captionTrackSelect = document.getElementById("captionTrackSelect");
+    this.captionSize = document.getElementById("captionSize");
+    this.captionSizeVal = document.getElementById("captionSizeVal");
+    this.captionColors = document.getElementById("captionColors");
+    this.captionBgOpacity = document.getElementById("captionBgOpacity");
+    this.captionBgVal = document.getElementById("captionBgVal");
+    this.ccBtn = document.getElementById("ccBtn");
+    this.toastNotification = document.getElementById("toastNotification");
+    this.subtitleFileInput = document.getElementById("subtitleFileInput");
+    this.subtitleUploadBtn = document.getElementById("subtitleUploadBtn");
+    this.subtitleFileName = document.getElementById("subtitleFileName");
+
+    // CC Button always opens settings now (to allow file upload)
+    this.ccBtn.addEventListener("click", () => {
+        this.openCaptionSettings();
+    });
+
+    this.closeCaptionSettingsBtn.addEventListener("click", () => {
+        this.captionSettingsModal.classList.remove("active");
+    });
+
+    // Track Selection
+    this.captionTrackSelect.addEventListener("change", (e) => {
+        this.setTrack(e.target.value);
+    });
+
+    // Styling Inputs
+    this.captionSize.addEventListener("input", (e) => this.updateCaptionStyle("size", e.target.value));
+    this.captionBgOpacity.addEventListener("input", (e) => this.updateCaptionStyle("bg", e.target.value));
+    
+    // Colors
+    this.captionColors.querySelectorAll(".color-opt").forEach(btn => {
+        btn.addEventListener("click", () => {
+            this.captionColors.querySelectorAll(".color-opt").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            this.updateCaptionStyle("color", btn.dataset.color);
+        });
+    });
+
+    // Subtitle File Upload
+    this.subtitleUploadBtn.addEventListener("click", () => {
+        this.subtitleFileInput.click();
+    });
+
+    this.subtitleFileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            this.loadSubtitleFile(file);
+        }
+    });
+
+    // Detect new tracks
+    this.video.textTracks.addEventListener("addtrack", () => this.updateTrackList());
+    
+    // Load saved perfs
+    this.loadCaptionPreferences();
+  }
+
+  loadSubtitleFile(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        let content = e.target.result;
+        const fileName = file.name;
+        
+        // Convert SRT to VTT if needed
+        if (fileName.endsWith('.srt')) {
+            content = this.srtToVtt(content);
+        }
+        
+        // Remove any existing custom track
+        const existingTrack = this.video.querySelector('track[data-custom="true"]');
+        if (existingTrack) {
+            existingTrack.remove();
+        }
+        
+        // Create a blob URL for the VTT content
+        const blob = new Blob([content], { type: 'text/vtt' });
+        const url = URL.createObjectURL(blob);
+        
+        // Add track element to video
+        const track = document.createElement('track');
+        track.kind = 'subtitles';
+        track.label = fileName.replace(/\.(srt|vtt)$/i, '');
+        track.srclang = 'en';
+        track.src = url;
+        track.dataset.custom = 'true';
+        track.default = true;
+        
+        this.video.appendChild(track);
+        
+        // Enable the track
+        setTimeout(() => {
+            const textTrack = this.video.textTracks[this.video.textTracks.length - 1];
+            textTrack.mode = 'showing';
+            this.updateTrackList();
+            this.ccBtn.classList.add('active');
+            this.showToast('Subtitles loaded: ' + fileName);
+            this.subtitleFileName.textContent = fileName;
+        }, 100);
+    };
+    reader.readAsText(file);
+  }
+
+  srtToVtt(srt) {
+    // Convert SRT format to WebVTT
+    let vtt = 'WEBVTT\n\n';
+    
+    // Replace SRT timecodes (comma) with VTT timecodes (period)
+    // SRT: 00:00:01,000 --> 00:00:04,000
+    // VTT: 00:00:01.000 --> 00:00:04.000
+    const lines = srt.split('\n');
+    let result = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        
+        // Replace comma with period in timestamps
+        if (line.includes(' --> ')) {
+            line = line.replace(/,/g, '.');
+        }
+        
+        // Skip sequence numbers (just digits)
+        if (/^\d+$/.test(line)) {
+            continue;
+        }
+        
+        result.push(line);
+    }
+    
+    return vtt + result.join('\n');
+  }
+
+  updateTrackList() {
+    const tracks = Array.from(this.video.textTracks);
+    this.captionTrackSelect.innerHTML = '<option value="off">Off</option>';
+    
+    // Always show button
+    this.ccBtn.style.display = "flex";
+
+    if (tracks.length > 0) {
+        tracks.forEach((track, index) => {
+            const opt = document.createElement("option");
+            opt.value = index;
+            opt.textContent = track.label || track.language || `Track ${index + 1}`;
+            this.captionTrackSelect.appendChild(opt);
+        });
+    }
+  }
+
+  setTrack(index) {
+    // Handle HLS tracks
+    if (typeof index === 'string' && index.startsWith('hls-')) {
+        const hlsIndex = parseInt(index.replace('hls-', ''));
+        this.setHLSTrack(hlsIndex);
+        localStorage.setItem("vayu_caption_track", index);
+        return;
+    }
+
+    // Handle native textTracks
+    const tracks = Array.from(this.video.textTracks);
+    tracks.forEach(t => t.mode = "hidden"); // Hide all first
+    
+    if (index !== "off" && tracks[index]) {
+        tracks[index].mode = "showing";
+        this.ccBtn.classList.add("active");
+    } else {
+        this.ccBtn.classList.remove("active");
+        // Also disable HLS subtitles if any
+        if (this.hlsInstance) {
+            this.hlsInstance.subtitleTrack = -1;
+        }
+    }
+    localStorage.setItem("vayu_caption_track", index);
+  }
+
+  openCaptionSettings() {
+    this.updateTrackList(); // Refresh list
+    // Set current value
+    const currentMode = Array.from(this.video.textTracks).findIndex(t => t.mode === "showing");
+    this.captionTrackSelect.value = currentMode !== -1 ? currentMode : "off";
+    
+    this.captionSettingsModal.classList.add("active");
+  }
+
+  updateCaptionStyle(prop, value) {
+    if (prop === "size") {
+        this.video.style.setProperty("--caption-size", `${value / 100 * 1.5}rem`);
+        this.captionSizeVal.textContent = `${value}%`;
+    } else if (prop === "bg") {
+        this.video.style.setProperty("--caption-bg", `rgba(0, 0, 0, ${value / 100})`);
+        this.captionBgVal.textContent = `${value}%`;
+    } else if (prop === "color") {
+        this.video.style.setProperty("--caption-color", value);
+    }
+    this.saveCaptionStyle();
+  }
+
+  saveCaptionStyle() {
+    const style = {
+        size: this.captionSize.value,
+        bg: this.captionBgOpacity.value,
+        color: this.captionColors.querySelector(".active")?.dataset.color || "#FFFFFF"
+    };
+    localStorage.setItem("vayu_caption_style", JSON.stringify(style));
+  }
+
+  loadCaptionPreferences() {
+    // Load Style
+    const savedStyle = JSON.parse(localStorage.getItem("vayu_caption_style"));
+    if (savedStyle) {
+        this.captionSize.value = savedStyle.size;
+        this.captionBgOpacity.value = savedStyle.bg;
+        // Apply
+        this.updateCaptionStyle("size", savedStyle.size);
+        this.updateCaptionStyle("bg", savedStyle.bg);
+        this.updateCaptionStyle("color", savedStyle.color);
+        
+        // Update UI hooks
+        const colorBtn = Array.from(this.captionColors.children).find(b => b.dataset.color === savedStyle.color);
+        if (colorBtn) {
+            this.captionColors.querySelectorAll(".active").forEach(b => b.classList.remove("active"));
+            colorBtn.classList.add("active");
+        }
+    }
+
+    // Attempt to restore track (basic logic)
+    // Note: Track availability depends on video load, so this might need to run after metadata loaded.
+    this.video.addEventListener("loadedmetadata", () => {
+         this.updateTrackList();
+    });
+  }
+
+  showToast(message, duration = 2000) {
+      this.toastNotification.textContent = message;
+      this.toastNotification.classList.add('active');
+      
+      clearTimeout(this.toastTimeout);
+      this.toastTimeout = setTimeout(() => {
+          this.toastNotification.classList.remove('active');
+      }, duration);
+  }
+} // End Class
 
 // Initialize player when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
   window.streamFlow = new StreamFlowPlayer();
+  // Init captions
+  window.streamFlow.setupCaptions();
 });
 
 // Service Worker for offline support (optional enhancement)
