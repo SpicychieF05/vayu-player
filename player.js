@@ -13,6 +13,7 @@ class VayuPlayer {
     this.urlInput = document.getElementById("videoUrl");
     this.loadBtn = document.getElementById("loadBtn");
     this.backBtn = document.getElementById("backBtn");
+    this.logoHomeLink = document.getElementById("logoHomeLink");
     this.useProxyCheckbox = document.getElementById("useProxy");
 
     // Overlays
@@ -129,6 +130,7 @@ class VayuPlayer {
       if (e.key === "Enter") this.loadVideo();
     });
     this.backBtn.addEventListener("click", () => this.showUrlSection());
+    this.logoHomeLink.addEventListener("click", () => this.showUrlSection());
     this.retryBtn.addEventListener("click", () => this.loadVideo());
 
     // Play Controls
