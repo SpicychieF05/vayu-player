@@ -293,94 +293,92 @@
                         <span class="error-text" id="errorText">Unable to load video</span>
                         <button class="retry-btn" id="retryBtn">Try Again</button>
                     </div>
+
+                    <!-- Caption Settings Modal -->
+                    <div class="settings-modal" id="captionSettingsModal">
+                        <div class="settings-header">
+                            <h3>Caption Settings</h3>
+                            <button class="close-settings" id="closeCaptionSettings">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                        
+                        <div class="settings-content">
+                            <div class="setting-group">
+                                <label>Text Track</label>
+                                <select id="captionTrackSelect" class="setting-select">
+                                    <option value="off">Off</option>
+                                </select>
+                            </div>
+
+                            <div class="setting-group">
+                                <label>Load Subtitle File (.srt, .vtt)</label>
+                                <div class="file-upload-wrapper">
+                                    <input type="file" id="subtitleFileInput" accept=".srt,.vtt" class="file-input-hidden">
+                                    <button class="file-upload-btn" id="subtitleUploadBtn">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                                        Choose File
+                                    </button>
+                                    <span id="subtitleFileName" class="file-name">No file selected</span>
+                                </div>
+                            </div>
+
+                            <div class="settings-divider"></div>
+
+                            <div class="setting-group">
+                                <label>Font Size</label>
+                                <div class="setting-control">
+                                    <input type="range" id="captionSize" class="setting-slider" min="50" max="200" value="100">
+                                    <span id="captionSizeVal">100%</span>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <label>Text Color</label>
+                                <div class="color-options" id="captionColors">
+                                    <button class="color-opt active" data-color="#FFFFFF" style="background:#FFFFFF"></button>
+                                    <button class="color-opt" data-color="#FFFF00" style="background:#FFFF00"></button>
+                                    <button class="color-opt" data-color="#00FF00" style="background:#00FF00"></button>
+                                    <button class="color-opt" data-color="#00FFFF" style="background:#00FFFF"></button>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <label>Background</label>
+                                <div class="setting-control">
+                                    <input type="range" id="captionBgOpacity" class="setting-slider" min="0" max="100" value="50">
+                                    <span id="captionBgVal">50%</span>
+                                </div>
+                            </div>
+
+                            <div class="settings-divider"></div>
+
+                            <div class="setting-group">
+                                <label>Vertical Position</label>
+                                <div class="setting-control">
+                                    <input type="range" id="captionVertical" class="setting-slider" min="0" max="100" value="90">
+                                    <span id="captionVerticalVal">90%</span>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <label>Horizontal Position</label>
+                                <div class="setting-control">
+                                    <input type="range" id="captionHorizontal" class="setting-slider" min="0" max="100" value="50">
+                                    <span id="captionHorizontalVal">50%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-        <!-- Caption Settings Modal -->
-        <div class="settings-modal" id="captionSettingsModal">
-            <div class="settings-header">
-                <h3>Caption Settings</h3>
-                <button class="close-settings" id="closeCaptionSettings">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                </button>
-            </div>
-            
-            <div class="settings-content">
-                <div class="setting-group">
-                    <label>Text Track</label>
-                    <select id="captionTrackSelect" class="setting-select">
-                        <option value="off">Off</option>
-                    </select>
-                </div>
-
-                <div class="setting-group">
-                    <label>Load Subtitle File (.srt, .vtt)</label>
-                    <div class="file-upload-wrapper">
-                        <input type="file" id="subtitleFileInput" accept=".srt,.vtt" class="file-input-hidden">
-                        <button class="file-upload-btn" id="subtitleUploadBtn">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                            Choose File
-                        </button>
-                        <span id="subtitleFileName" class="file-name">No file selected</span>
-                    </div>
-                </div>
-
-                <div class="settings-divider"></div>
-
-                <div class="setting-group">
-                    <label>Font Size</label>
-                    <div class="setting-control">
-                        <input type="range" id="captionSize" class="setting-slider" min="50" max="200" value="100">
-                        <span id="captionSizeVal">100%</span>
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <label>Text Color</label>
-                    <div class="color-options" id="captionColors">
-                        <button class="color-opt active" data-color="#FFFFFF" style="background:#FFFFFF"></button>
-                        <button class="color-opt" data-color="#FFFF00" style="background:#FFFF00"></button>
-                        <button class="color-opt" data-color="#00FF00" style="background:#00FF00"></button>
-                        <button class="color-opt" data-color="#00FFFF" style="background:#00FFFF"></button>
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <label>Background</label>
-                    <div class="setting-control">
-                        <input type="range" id="captionBgOpacity" class="setting-slider" min="0" max="100" value="50">
-                        <span id="captionBgVal">50%</span>
-                    </div>
-                </div>
-
-                <div class="settings-divider"></div>
-
-                <div class="setting-group">
-                    <label>Vertical Position</label>
-                    <div class="setting-control">
-                        <input type="range" id="captionVertical" class="setting-slider" min="0" max="100" value="90">
-                        <span id="captionVerticalVal">90%</span>
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <label>Horizontal Position</label>
-                    <div class="setting-control">
-                        <input type="range" id="captionHorizontal" class="setting-slider" min="0" max="100" value="50">
-                        <span id="captionHorizontalVal">50%</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Toast Notification -->
-        <div id="toastNotification" class="toast-notification"></div>
+                    <!-- Toast Notification -->
+                    <div id="toastNotification" class="toast-notification"></div>
                 </div>
 
                 <!-- Back Button -->
                 <button class="back-btn" id="backBtn">
                     <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
+                        <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                     <span>New Video</span>
                 </button>
@@ -409,8 +407,6 @@
                 <button class="close-shortcuts" id="closeShortcuts">Got it</button>
             </div>
         </div>
-
-
     </div>
 
     <script src="player.js"></script>
