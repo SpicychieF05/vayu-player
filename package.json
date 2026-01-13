@@ -1,0 +1,24 @@
+{
+  "name": "vayu-player",
+  "version": "1.0.0",
+  "description": "Premium Video Player with Proxy Support",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "http": "0.0.1-security",
+    "https": "1.0.0",
+    "url": "0.11.3"
+  },
+  "keywords": [
+    "video",
+    "player",
+    "hls",
+    "dash",
+    "proxy"
+  ],
+  "author": "Codiverse Web Services",
+  "license": "MIT"
+}
