@@ -54,7 +54,8 @@
 
 html, body {
     height: 100%;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 body {
@@ -243,10 +244,11 @@ body {
   z-index: 10;
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 32px;
-  overflow: hidden;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 /* URL Section */
@@ -538,6 +540,142 @@ body {
 
 .clear-recent:hover {
   color: var(--error);
+}
+
+/* Pinned Section */
+.pinned-section {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  width: 100%;
+}
+
+.pinned-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-primary);
+  margin-bottom: 16px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pinned-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pinned-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.1), rgba(10, 132, 255, 0.05));
+  border: 1px solid rgba(10, 132, 255, 0.2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-align: left;
+  position: relative;
+}
+
+.pinned-item:hover {
+  background: linear-gradient(135deg, rgba(10, 132, 255, 0.15), rgba(10, 132, 255, 0.08));
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+}
+
+.pinned-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--accent-primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.pinned-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pinned-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.pinned-url {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pinned-actions {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.pinned-item:hover .pinned-actions {
+  opacity: 1;
+}
+
+.pin-action-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.pin-action-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+}
+
+.pin-action-btn.delete:hover {
+  background: rgba(255, 59, 48, 0.2);
+  color: var(--error);
+}
+
+/* Pin button in recent items */
+.recent-item {
+  position: relative;
+}
+
+.recent-actions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.recent-item:hover .recent-actions {
+  opacity: 1;
 }
 
 /* Player Section */
@@ -1874,3 +2012,117 @@ video::cue {
         padding: 16px 40px;
     }
 }
+
+/* ================================
+   RESPONSIVE DESIGN
+   ================================ */
+
+/* Mobile First - Small screens */
+@media (max-width: 480px) {
+    .main-content {
+        padding: 16px;
+    }
+    
+    .url-section {
+        padding: 0 8px;
+    }
+    
+    .url-card {
+        padding: 16px;
+    }
+    
+    .url-input {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+    
+    .load-btn {
+        padding: 12px 24px;
+        font-size: 0.9rem;
+    }
+    
+    .header {
+        padding: 12px 16px;
+    }
+    
+    .header-stats {
+        display: none;
+    }
+    
+    .logo-text {
+        font-size: 1rem;
+    }
+    
+    .recent-list,
+    .pinned-list {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .recent-item,
+    .pinned-item {
+        padding: 10px;
+    }
+    
+    .recent-actions,
+    .pinned-actions {
+        opacity: 1;
+    }
+    
+    .controls-bottom {
+        gap: 4px;
+        padding: 8px;
+    }
+    
+    .ctrl-btn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .slider {
+        --slider-width: 60px;
+    }
+    
+    .app-footer {
+        padding: 16px;
+        gap: 8px;
+    }
+    
+    .developer-info {
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+
+/* Tablet */
+@media (min-width: 481px) and (max-width: 768px) {
+    .main-content {
+        padding: 24px;
+    }
+    
+    .recent-list,
+    .pinned-list {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+    
+    .header-stats {
+        gap: 16px;
+    }
+    
+    .stat {
+        padding: 6px 12px;
+    }
+}
+
+/* Ensure URL section content is scrollable */
+.url-section {
+    padding-top: 20px;
+    padding-bottom: 40px;
+}
+
+/* Fix for very tall content */
+.main-content:has(.url-section) {
+    align-items: flex-start;
+    padding-top: 40px;
+}
+

@@ -1434,18 +1434,136 @@ class VayuPlayer {
   }
 
   loadHistory() {
+    this.pinnedSection = document.getElementById('pinnedSection');
+    this.pinnedList = document.getElementById('pinnedList');
+    this.renderPinned();
     this.renderHistory();
+  }
+
+  // --- PINNED VIDEOS ---
+  getPinned() {
+    return JSON.parse(localStorage.getItem('vayu_player_pinned') || '[]');
+  }
+
+  savePinned(pinned) {
+    localStorage.setItem('vayu_player_pinned', JSON.stringify(pinned));
+  }
+
+  pinVideo(url, name = null) {
+    let pinned = this.getPinned();
+    // Check if already pinned
+    if (pinned.find(p => p.url === url)) {
+      this.showToast('Already pinned!');
+      return;
+    }
+    
+    // Prompt for name if not provided
+    const displayName = name || prompt('Enter a name for this video:', this.truncateUrl(url));
+    if (displayName === null) return; // User cancelled
+    
+    pinned.push({
+      url: url,
+      name: displayName || this.truncateUrl(url),
+      timestamp: Date.now()
+    });
+    
+    this.savePinned(pinned);
+    this.renderPinned();
+    this.showToast('Video pinned!');
+  }
+
+  unpinVideo(url) {
+    let pinned = this.getPinned();
+    pinned = pinned.filter(p => p.url !== url);
+    this.savePinned(pinned);
+    this.renderPinned();
+    this.showToast('Unpinned');
+  }
+
+  renamePinned(url) {
+    let pinned = this.getPinned();
+    const item = pinned.find(p => p.url === url);
+    if (!item) return;
+    
+    const newName = prompt('Enter new name:', item.name);
+    if (newName === null || newName.trim() === '') return;
+    
+    item.name = newName.trim();
+    this.savePinned(pinned);
+    this.renderPinned();
+    this.showToast('Renamed!');
+  }
+
+  renderPinned() {
+    const pinned = this.getPinned();
+    
+    if (pinned.length === 0) {
+      this.pinnedSection.style.display = 'none';
+      return;
+    }
+
+    this.pinnedSection.style.display = 'block';
+    this.pinnedList.innerHTML = pinned.map(item => `
+        <div class="pinned-item" data-url="${item.url}">
+            <div class="pinned-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5v14l11-7-11-7z"/></svg>
+            </div>
+            <div class="pinned-info">
+                <div class="pinned-name">${item.name}</div>
+                <div class="pinned-url">${this.truncateUrl(item.url)}</div>
+            </div>
+            <div class="pinned-actions">
+                <button class="pin-action-btn rename-btn" data-url="${item.url}" title="Rename">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="pin-action-btn delete unpin-btn" data-url="${item.url}" title="Unpin">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+            </div>
+        </div>
+    `).join('');
+
+    // Play video on click
+    this.pinnedList.querySelectorAll('.pinned-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+            if (e.target.closest('.pinned-actions')) return; // Ignore action button clicks
+            this.urlInput.value = el.dataset.url;
+            this.loadVideo();
+        });
+    });
+
+    // Rename buttons
+    this.pinnedList.querySelectorAll('.rename-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.renamePinned(btn.dataset.url);
+        });
+    });
+
+    // Unpin buttons
+    this.pinnedList.querySelectorAll('.unpin-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.unpinVideo(btn.dataset.url);
+        });
+    });
   }
 
   renderHistory() {
     const history = JSON.parse(localStorage.getItem('vayu_player_history') || '[]');
-    if (history.length === 0) {
+    const pinned = this.getPinned();
+    const pinnedUrls = pinned.map(p => p.url);
+    
+    // Filter out pinned items from history display
+    const unpinnedHistory = history.filter(item => !pinnedUrls.includes(item.url));
+    
+    if (unpinnedHistory.length === 0) {
         this.recentSection.style.display = 'none';
         return;
     }
 
     this.recentSection.style.display = 'block';
-    this.recentList.innerHTML = history.map(item => `
+    this.recentList.innerHTML = unpinnedHistory.map(item => `
         <div class="recent-item" data-url="${item.url}">
             <div class="recent-thumbnail">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1457,15 +1575,49 @@ class VayuPlayer {
                 <div class="recent-url">${this.truncateUrl(item.url)}</div>
                 <div class="recent-date">${new Date(item.timestamp).toLocaleDateString()}</div>
             </div>
+            <div class="recent-actions">
+                <button class="pin-action-btn pin-btn" data-url="${item.url}" title="Pin this video">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                </button>
+                <button class="pin-action-btn delete delete-history-btn" data-url="${item.url}" title="Remove from history">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+            </div>
         </div>
     `).join('');
 
+    // Play video on click
     this.recentList.querySelectorAll('.recent-item').forEach(el => {
-        el.addEventListener('click', () => {
+        el.addEventListener('click', (e) => {
+            if (e.target.closest('.recent-actions')) return; // Ignore action button clicks
             this.urlInput.value = el.dataset.url;
             this.loadVideo();
         });
     });
+
+    // Pin buttons
+    this.recentList.querySelectorAll('.pin-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.pinVideo(btn.dataset.url);
+        });
+    });
+
+    // Delete buttons
+    this.recentList.querySelectorAll('.delete-history-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.deleteFromHistory(btn.dataset.url);
+        });
+    });
+  }
+
+  deleteFromHistory(url) {
+    let history = JSON.parse(localStorage.getItem('vayu_player_history') || '[]');
+    history = history.filter(item => item.url !== url);
+    localStorage.setItem('vayu_player_history', JSON.stringify(history));
+    this.renderHistory();
+    this.showToast('Removed from history');
   }
 
   truncateUrl(url) {
