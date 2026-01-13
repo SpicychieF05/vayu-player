@@ -293,41 +293,7 @@
                         <span class="error-text" id="errorText">Unable to load video</span>
                         <button class="retry-btn" id="retryBtn">Try Again</button>
                     </div>
-                </div>
-
-                <!-- Back Button -->
-                <button class="back-btn" id="backBtn">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                    </svg>
-                    <span>New Video</span>
-                </button>
-            </section>
-        </main>
-
-        <!-- Keyboard Shortcuts Modal -->
-        <div class="shortcuts-modal" id="shortcutsModal">
-            <div class="shortcuts-content">
-                <h3>Keyboard Shortcuts</h3>
-                <div class="shortcuts-grid">
-                    <div class="shortcut"><kbd>Space</kbd><span>Play/Pause</span></div>
-                    <div class="shortcut"><kbd>F</kbd><span>Fullscreen</span></div>
-                    <div class="shortcut"><kbd>M</kbd><span>Mute</span></div>
-                    <div class="shortcut"><kbd>P</kbd><span>Picture in Picture</span></div>
-                    <div class="shortcut"><kbd>←</kbd><span>Back 10s</span></div>
-                    <div class="shortcut"><kbd>→</kbd><span>Forward 10s</span></div>
-                    <div class="shortcut"><kbd>↑</kbd><span>Volume Up</span></div>
-                    <div class="shortcut"><kbd>↓</kbd><span>Volume Down</span></div>
-                    <div class="shortcut"><kbd>0-9</kbd><span>Jump to 0%-90%</span></div>
-                    <div class="shortcut"><kbd>Click</kbd><span>Jump to Time</span></div>
-                </div>
-                <p style="text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--text-tertiary);">
-                    Click the time display to jump to a specific timestamp
-                </p>
-                <button class="close-shortcuts" id="closeShortcuts">Got it</button>
-            </div>
-        </div>
+                    </div>
 
         <!-- Caption Settings Modal -->
         <div class="settings-modal" id="captionSettingsModal">
@@ -408,6 +374,43 @@
 
         <!-- Toast Notification -->
         <div id="toastNotification" class="toast-notification"></div>
+                </div>
+
+                <!-- Back Button -->
+                <button class="back-btn" id="backBtn">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                    <span>New Video</span>
+                </button>
+            </section>
+        </main>
+
+        <!-- Keyboard Shortcuts Modal -->
+        <div class="shortcuts-modal" id="shortcutsModal">
+            <div class="shortcuts-content">
+                <h3>Keyboard Shortcuts</h3>
+                <div class="shortcuts-grid">
+                    <div class="shortcut"><kbd>Space</kbd><span>Play/Pause</span></div>
+                    <div class="shortcut"><kbd>F</kbd><span>Fullscreen</span></div>
+                    <div class="shortcut"><kbd>M</kbd><span>Mute</span></div>
+                    <div class="shortcut"><kbd>P</kbd><span>Picture in Picture</span></div>
+                    <div class="shortcut"><kbd>←</kbd><span>Back 10s</span></div>
+                    <div class="shortcut"><kbd>→</kbd><span>Forward 10s</span></div>
+                    <div class="shortcut"><kbd>↑</kbd><span>Volume Up</span></div>
+                    <div class="shortcut"><kbd>↓</kbd><span>Volume Down</span></div>
+                    <div class="shortcut"><kbd>0-9</kbd><span>Jump to 0%-90%</span></div>
+                    <div class="shortcut"><kbd>Click</kbd><span>Jump to Time</span></div>
+                </div>
+                <p style="text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--text-tertiary);">
+                    Click the time display to jump to a specific timestamp
+                </p>
+                <button class="close-shortcuts" id="closeShortcuts">Got it</button>
+            </div>
+        </div>
+
+
     </div>
 
     <script src="player.js"></script>

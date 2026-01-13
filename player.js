@@ -1560,9 +1560,36 @@ class StreamFlowPlayer {
     this.customCaptionContainer = document.getElementById("customCaptionContainer");
     this.customCaptionText = document.getElementById("customCaptionText");
 
-    // CC Button always opens settings now (to allow file upload)
-    this.ccBtn.addEventListener("click", () => {
+    // Hover support for CC Button
+    let hoverTimeout;
+    
+    const showSettings = () => {
+        clearTimeout(hoverTimeout);
         this.openCaptionSettings();
+    };
+
+    const hideSettings = () => {
+        hoverTimeout = setTimeout(() => {
+            this.captionSettingsModal.classList.remove("active");
+        }, 300); // Small delay to allow moving mouse to modal
+    };
+
+    this.ccBtn.addEventListener("mouseenter", showSettings);
+    this.ccBtn.addEventListener("mouseleave", hideSettings);
+    
+    // Also keep open when hovering the modal itself
+    this.captionSettingsModal.addEventListener("mouseenter", () => {
+        clearTimeout(hoverTimeout);
+    });
+    
+    this.captionSettingsModal.addEventListener("mouseleave", hideSettings);
+
+    // Keep click for mobile / manual toggle if needed, or just let hover handle it.
+    // User requested "on hover", but click is good backup for touch.
+    this.ccBtn.addEventListener("click", (e) => {
+        // Prevent double fire if hover already handled, or toggle if needed.
+        // For simplicity, just ensure it's open.
+        showSettings();
     });
 
     this.closeCaptionSettingsBtn.addEventListener("click", () => {
