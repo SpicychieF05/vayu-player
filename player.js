@@ -133,6 +133,13 @@ class VayuPlayer {
     this.logoHomeLink.addEventListener("click", () => this.showUrlSection());
     this.retryBtn.addEventListener("click", () => this.loadVideo());
 
+    // Error Overlay - Click outside to close
+    this.errorOverlay.addEventListener("click", (e) => {
+        if (e.target === this.errorOverlay) {
+            this.hideError();
+        }
+    });
+
     // Play Controls
     this.playPauseBtn.addEventListener("click", () => this.togglePlay());
     this.bigPlayBtn.addEventListener("click", () => this.togglePlay());
