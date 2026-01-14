@@ -105,6 +105,12 @@
             <!-- Video Player Section -->
             <section class="player-section" id="playerSection">
                 <div class="player-container" id="playerContainer">
+                    <!-- Back Button overlay -->
+                    <button class="player-back-btn" id="backBtn" title="Back to Home">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
                     <!-- Video Element -->
                     <video id="videoPlayer" class="video-element" preload="auto" playsinline></video>
 
@@ -291,12 +297,14 @@
 
                     <!-- Error Overlay -->
                     <div class="error-overlay" id="errorOverlay">
-                        <svg viewBox="0 0 64 64" fill="none">
-                            <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2" />
-                            <path d="M32 20v16M32 42v2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                        </svg>
-                        <span class="error-text" id="errorText">Unable to load video</span>
-                        <button class="retry-btn" id="retryBtn">Try Again</button>
+                        <div class="error-content">
+                            <svg viewBox="0 0 64 64" fill="none">
+                                <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2" />
+                                <path d="M32 20v16M32 42v2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                            </svg>
+                            <span class="error-text" id="errorText">Unable to load video</span>
+                            <button class="retry-btn" id="retryBtn">Try Again</button>
+                        </div>
                     </div>
 
                     <!-- Caption Settings Modal -->
@@ -401,12 +409,7 @@
                 </div>
 
                 <!-- Back Button -->
-                <button class="back-btn" id="backBtn">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                    <span>New Video</span>
-                </button>
+
             </section>
         </main>
 
