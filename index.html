@@ -252,6 +252,21 @@
                                     </div>
                                 </div>
 
+                                <!-- Video Quality -->
+                                <div class="quality-container">
+                                    <button class="ctrl-btn quality-btn" id="qualityBtn" title="Quality (Q)">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                                            <text x="12" y="15" text-anchor="middle" fill="currentColor" font-size="8" font-weight="bold">HD</text>
+                                        </svg>
+                                        <span id="qualityValue">Auto</span>
+                                    </button>
+                                    <div class="quality-menu" id="qualityMenu">
+                                        <div class="quality-option active" data-quality="-1">Auto</div>
+                                        <!-- Dynamic quality levels will be added here -->
+                                    </div>
+                                </div>
+
                                 <!-- Picture in Picture -->
                                 <button class="ctrl-btn" id="pipBtn" title="Picture in Picture (P)">
                                     <svg viewBox="0 0 24 24" fill="none">

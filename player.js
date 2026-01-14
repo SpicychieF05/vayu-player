@@ -67,6 +67,11 @@ class VayuPlayer {
     this.recentList = document.getElementById("recentList");
     this.clearRecentBtn = document.getElementById("clearRecent");
 
+    // Quality Control
+    this.qualityBtn = document.getElementById("qualityBtn");
+    this.qualityMenu = document.getElementById("qualityMenu");
+    this.qualityValue = document.getElementById("qualityValue");
+
     // State
     this.isPlaying = false;
     this.isMuted = false;
@@ -428,6 +433,19 @@ class VayuPlayer {
     // Close speed menu when clicking outside
     document.addEventListener("click", () => {
       this.speedMenu.classList.remove("active");
+    });
+
+    // Quality Menu
+    this.qualityBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.qualityMenu.classList.toggle("active");
+    });
+
+    // Close quality menu when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest('.quality-container')) {
+        this.qualityMenu.classList.remove("active");
+      }
     });
 
     // Shortcuts Modal
@@ -819,6 +837,13 @@ class VayuPlayer {
       
       this.hlsInstance.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         this.hideLoading();
+        
+        // Detect quality levels for HLS streams
+        if (this.hlsInstance.levels && this.hlsInstance.levels.length > 1) {
+          console.log("📺 Quality levels detected:", this.hlsInstance.levels);
+          this.updateQualityLevels(this.hlsInstance.levels);
+        }
+        
         // Check for subtitle tracks in HLS manifest
         if (this.hlsInstance.subtitleTracks && this.hlsInstance.subtitleTracks.length > 0) {
           console.log("📝 HLS Subtitle tracks found:", this.hlsInstance.subtitleTracks);
@@ -1491,6 +1516,10 @@ class VayuPlayer {
       case "p":
         e.preventDefault();
         this.togglePiP();
+        break;
+      case "q":
+        e.preventDefault();
+        this.qualityMenu.classList.toggle("active");
         break;
       case "arrowleft":
       case "j":
@@ -2358,6 +2387,122 @@ class VayuPlayer {
       this.hlsInstance.audioTrack = trackIndex;
       const track = this.hlsInstance.audioTracks[trackIndex];
       this.showToast(`Audio: ${track.name || track.lang || 'Track ' + (trackIndex + 1)}`);
+  }
+
+  // --- QUALITY MANAGEMENT ---
+  
+  /**
+   * Update quality menu with available levels
+   */
+  updateQualityLevels(levels) {
+    if (!levels || levels.length <= 1) {
+      // Hide quality button if only one quality available
+      this.qualityBtn.style.display = 'none';
+      return;
+    }
+
+    this.qualityBtn.style.display = 'flex';
+    
+    // Clear existing options except Auto
+    this.qualityMenu.innerHTML = '<div class="quality-option active" data-quality="-1">Auto</div>';
+    
+    // Add quality levels (sorted by height, highest first)
+    const sortedLevels = [...levels].sort((a, b) => b.height - a.height);
+    
+    sortedLevels.forEach((level, index) => {
+      const realIndex = levels.indexOf(level);
+      const qualityLabel = this.getQualityLabel(level);
+      const bitrate = (level.bitrate / 1000000).toFixed(2); // Convert to Mbps
+      
+      const option = document.createElement('div');
+      option.className = 'quality-option';
+      option.dataset.quality = realIndex;
+      option.innerHTML = `
+        <div class="quality-info">
+          <span class="quality-label">${qualityLabel}</span>
+          <span class="quality-bitrate">${bitrate} Mbps</span>
+        </div>
+      `;
+      
+      option.addEventListener('click', () => this.setQuality(realIndex));
+      this.qualityMenu.appendChild(option);
+    });
+    
+    // Update current quality display
+    this.updateQualityDisplay();
+  }
+
+  /**
+   * Get user-friendly quality label
+   */
+  getQualityLabel(level) {
+    const height = level.height;
+    
+    if (height >= 2160) return '4K';
+    if (height >= 1440) return '1440p';
+    if (height >= 1080) return '1080p (Full HD)';
+    if (height >= 720) return '720p (HD)';
+    if (height >= 480) return '480p (SD)';
+    if (height >= 360) return '360p';
+    if (height >= 240) return '240p';
+    return `${height}p`;
+  }
+
+  /**
+   * Set video quality
+   */
+  setQuality(levelIndex) {
+    if (!this.hlsInstance) {
+      this.showToast('Quality selection only available for adaptive streams');
+      return;
+    }
+
+    // -1 means Auto (adaptive)
+    this.hlsInstance.currentLevel = levelIndex;
+    
+    // Update UI
+    this.qualityMenu.querySelectorAll('.quality-option').forEach(opt => {
+      opt.classList.remove('active');
+      if (opt.dataset.quality == levelIndex) {
+        opt.classList.add('active');
+      }
+    });
+    
+    this.updateQualityDisplay();
+    this.qualityMenu.classList.remove('active');
+    
+    if (levelIndex === -1) {
+      this.showToast('Quality: Auto (Adaptive)');
+    } else {
+      const level = this.hlsInstance.levels[levelIndex];
+      this.showToast(`Quality: ${this.getQualityLabel(level)}`);
+    }
+  }
+
+  /**
+   * Update quality display on button
+   */
+  updateQualityDisplay() {
+    if (!this.hlsInstance || !this.hlsInstance.levels) {
+      this.qualityValue.textContent = 'Auto';
+      return;
+    }
+
+    const currentLevel = this.hlsInstance.currentLevel;
+    
+    if (currentLevel === -1) {
+      // Auto mode - show currently playing quality
+      const loadLevel = this.hlsInstance.loadLevel;
+      if (loadLevel >= 0 && this.hlsInstance.levels[loadLevel]) {
+        const level = this.hlsInstance.levels[loadLevel];
+        this.qualityValue.textContent = `Auto (${level.height}p)`;
+      } else {
+        this.qualityValue.textContent = 'Auto';
+      }
+    } else if (this.hlsInstance.levels[currentLevel]) {
+      const level = this.hlsInstance.levels[currentLevel];
+      this.qualityValue.textContent = `${level.height}p`;
+    }
   }
 } // End Class
 
