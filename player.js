@@ -100,7 +100,105 @@ class VayuPlayer {
     this.DASH_LIB =
       "https://cdn.jsdelivr.net/npm/dashjs@latest/dist/dash.all.min.js";
 
+    // Error recovery
+    this.retryAttempts = 0;
+    this.maxRetryAttempts = 3;
+
+    // Network status
+    this.isOnline = navigator.onLine;
+
+    // Playback position tracking
+    this.lastSavedSecond = -1;
+
     this.init();
+  }
+
+  // ===== UTILITY METHODS =====
+  
+  /**
+   * Escape HTML to prevent XSS attacks
+   */
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /**
+   * Safe localStorage operations with quota handling
+   */
+  safeLocalStorageSet(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (e) {
+      if (e.name === 'QuotaExceededError') {
+        console.warn('LocalStorage quota exceeded');
+        this.handleStorageQuotaExceeded(key);
+        // Try again after cleanup
+        try {
+          localStorage.setItem(key, value);
+          return true;
+        } catch (retryError) {
+          console.error('Failed to save after cleanup:', retryError);
+          return false;
+        }
+      }
+      console.error('LocalStorage error:', e);
+      return false;
+    }
+  }
+
+  handleStorageQuotaExceeded(newKey) {
+    // Clear old history if we're saving new history/position data
+    if (newKey.includes('history') || newKey.includes('position')) {
+      const history = JSON.parse(localStorage.getItem('vayu_player_history') || '[]');
+      if (history.length > 5) {
+        // Keep only 5 most recent
+        const trimmed = history.slice(0, 5);
+        localStorage.setItem('vayu_player_history', JSON.stringify(trimmed));
+      }
+      
+      // Clear old playback positions
+      const positions = JSON.parse(localStorage.getItem('vayu_playback_positions') || '{}');
+      const posKeys = Object.keys(positions);
+      if (posKeys.length > 10) {
+        // Keep only 10 most recent
+        const sorted = posKeys.sort((a, b) => positions[b].timestamp - positions[a].timestamp);
+        const newPos = {};
+        sorted.slice(0, 10).forEach(key => newPos[key] = positions[key]);
+        localStorage.setItem('vayu_playback_positions', JSON.stringify(newPos));
+      }
+    }
+  }
+
+  /**
+   * Validate video URL
+   */
+  validateVideoUrl(url) {
+    try {
+      const urlObj = new URL(url);
+      
+      // Check protocol
+      if (!['http:', 'https:'].includes(urlObj.protocol)) {
+        return { 
+          valid: false, 
+          reason: 'Only HTTP/HTTPS URLs are supported' 
+        };
+      }
+      
+      // Check suspicious URLs (basic security check)
+      if (urlObj.hostname === 'localhost' || urlObj.hostname.includes('.local')) {
+        console.warn('Warning: Loading from localhost');
+      }
+      
+      return { valid: true };
+    } catch (e) {
+      return { 
+        valid: false, 
+        reason: 'Invalid URL format' 
+      };
+    }
   }
 
   init() {
@@ -108,7 +206,9 @@ class VayuPlayer {
     this.setupVideoEvents();
     this.setupWheelControls();
     this.setupGestures();
+    this.setupNetworkMonitoring();
     this.loadHistory();
+    this.setupHistoryEventDelegation();
     this.updateVolumeUI();
 
     // Focus input on load
@@ -119,6 +219,98 @@ class VayuPlayer {
     const videoUrl = params.get("url");
     if (videoUrl) {
       this.urlInput.value = decodeURIComponent(videoUrl);
+      this.loadVideo();
+    }
+  }
+
+  /**
+   * Setup network status monitoring
+   */
+  setupNetworkMonitoring() {
+    window.addEventListener('online', () => {
+      this.isOnline = true;
+      this.showToast('Connection restored');
+      console.log('Network: Online');
+      
+      // Auto retry if video errored due to network
+      if (this.video.error && !this.isPlaying) {
+        setTimeout(() => {
+          this.showToast('Attempting to resume...');
+          this.loadVideo();
+        }, 1000);
+      }
+    });
+
+    window.addEventListener('offline', () => {
+      this.isOnline = false;
+      this.showToast('Connection lost - video may buffer', 5000);
+      console.warn('Network: Offline');
+    });
+  }
+
+  /**
+   * Setup event delegation for history/pinned items to prevent memory leaks
+   */
+  setupHistoryEventDelegation() {
+    // Pinned items delegation
+    if (this.pinnedList) {
+      this.pinnedList.addEventListener('click', (e) => this.handlePinnedClick(e));
+    }
+
+    // Recent items delegation  
+    if (this.recentList) {
+      this.recentList.addEventListener('click', (e) => this.handleRecentClick(e));
+    }
+  }
+
+  handlePinnedClick(e) {
+    const pinnedItem = e.target.closest('.pinned-item');
+    if (!pinnedItem) return;
+
+    const url = pinnedItem.dataset.url;
+
+    // Check if clicking action buttons
+    if (e.target.closest('.rename-btn')) {
+      e.stopPropagation();
+      this.renamePinned(url);
+      return;
+    }
+
+    if (e.target.closest('.unpin-btn')) {
+      e.stopPropagation();
+      this.unpinVideo(url);
+      return;
+    }
+
+    // Play video
+    if (!e.target.closest('.pinned-actions')) {
+      this.urlInput.value = url;
+      this.loadVideo();
+    }
+  }
+
+  handleRecentClick(e) {
+    const recentItem = e.target.closest('.recent-item');
+    if (!recentItem) return;
+
+    const url = recentItem.dataset.url;
+
+    // Check if clicking action buttons
+    if (e.target.closest('.pin-btn')) {
+      e.stopPropagation();
+      this.pinVideo(url);
+      return;
+    }
+
+    if (e.target.closest('.delete-history-btn')) {
+      e.stopPropagation();
+      this.deleteFromHistory(url);
+      return;
+    }
+
+    // Play video
+    if (!e.target.closest('.recent-actions')) {
+      this.urlInput.value = url;
       this.loadVideo();
     }
   }
@@ -295,6 +487,16 @@ class VayuPlayer {
       // Initialize speed status
       this.updateSpeedStatus();
 
+      // Restore playback position if available
+      const savedPosition = this.getPlaybackPosition(this.originalUrl || this.currentUrl);
+      if (savedPosition && savedPosition > 5 && savedPosition < this.video.duration - 10) {
+        this.video.currentTime = savedPosition;
+        this.showToast(`Resuming from ${this.formatTime(savedPosition)}`, 3000);
+      }
+
+      // Reset retry attempts on successful load
+      this.retryAttempts = 0;
+
       console.log(
         `Video loaded: ${this.formatTime(this.video.duration)} duration`
       );
@@ -332,14 +534,23 @@ class VayuPlayer {
       this.isPlaying = false;
       this.playerContainer.classList.remove("playing");
       this.playOverlay.classList.remove("hidden");
+      // Clear saved position when video completes
+      this.clearPlaybackPosition(this.originalUrl || this.currentUrl);
     });
 
-    // Time update
+    // Time update - save position periodically
     this.video.addEventListener("timeupdate", () => {
       this.updateProgress();
       // Track max watched position for history buffer
       if (this.video.currentTime > this.maxWatchedPosition) {
         this.maxWatchedPosition = this.video.currentTime;
+      }
+      
+      // Save playback position every 5 seconds (when second value changes to 0 or 5)
+      const currentSecond = Math.floor(this.video.currentTime);
+      if (this.video.currentTime > 5 && currentSecond % 5 === 0 && currentSecond !== this.lastSavedSecond) {
+        this.lastSavedSecond = currentSecond;
+        this.savePlaybackPosition(this.originalUrl || this.currentUrl, this.video.currentTime);
       }
     });
 
@@ -365,12 +576,27 @@ class VayuPlayer {
       return;
     }
 
+    // Validate URL before proceeding
+    const validation = this.validateVideoUrl(url);
+    if (!validation.valid) {
+      this.showError(validation.reason);
+      this.urlInput.focus();
+      return;
+    }
+
+    // Check network status
+    if (!this.isOnline) {
+      this.showError('No internet connection.\nPlease check your network and try again.');
+      return;
+    }
+
+    // Reset retry attempts on manual load
+    this.retryAttempts = 0;
+
     // Check if proxy should be used
     const useProxy = this.useProxyCheckbox && this.useProxyCheckbox.checked;
     if (useProxy) {
       // Use proxy server
-      // If running via server.js or Vercel, relative path works.
-      // If running as static file, this needs full URL.
       const isStatic = window.location.protocol === 'file:';
       const proxyBase = isStatic ? 'http://localhost:4000/proxy' : '/proxy';
       url = `${proxyBase}?url=${encodeURIComponent(url)}`;
@@ -1436,7 +1662,7 @@ class VayuPlayer {
     });
     // Keep last 10
     history = history.slice(0, 10);
-    localStorage.setItem('vayu_player_history', JSON.stringify(history));
+    this.safeLocalStorageSet('vayu_player_history', JSON.stringify(history));
     this.renderHistory();
   }
 
@@ -1453,7 +1679,7 @@ class VayuPlayer {
   }
 
   savePinned(pinned) {
-    localStorage.setItem('vayu_player_pinned', JSON.stringify(pinned));
+    this.safeLocalStorageSet('vayu_player_pinned', JSON.stringify(pinned));
   }
 
   pinVideo(url, name = null) {
@@ -1510,50 +1736,29 @@ class VayuPlayer {
     }
 
     this.pinnedSection.style.display = 'block';
+    
+    // Use escapeHtml to prevent XSS attacks
     this.pinnedList.innerHTML = pinned.map(item => `
-        <div class="pinned-item" data-url="${item.url}">
+        <div class="pinned-item" data-url="${this.escapeHtml(item.url)}">
             <div class="pinned-icon">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M8 5v14l11-7-11-7z"/></svg>
             </div>
             <div class="pinned-info">
-                <div class="pinned-name">${item.name}</div>
-                <div class="pinned-url">${this.truncateUrl(item.url)}</div>
+                <div class="pinned-name">${this.escapeHtml(item.name)}</div>
+                <div class="pinned-url">${this.escapeHtml(this.truncateUrl(item.url))}</div>
             </div>
             <div class="pinned-actions">
-                <button class="pin-action-btn rename-btn" data-url="${item.url}" title="Rename">
+                <button class="pin-action-btn rename-btn" data-url="${this.escapeHtml(item.url)}" title="Rename">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
-                <button class="pin-action-btn delete unpin-btn" data-url="${item.url}" title="Unpin">
+                <button class="pin-action-btn delete unpin-btn" data-url="${this.escapeHtml(item.url)}" title="Unpin">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
                 </button>
             </div>
         </div>
     `).join('');
-
-    // Play video on click
-    this.pinnedList.querySelectorAll('.pinned-item').forEach(el => {
-        el.addEventListener('click', (e) => {
-            if (e.target.closest('.pinned-actions')) return; // Ignore action button clicks
-            this.urlInput.value = el.dataset.url;
-            this.loadVideo();
-        });
-    });
-
-    // Rename buttons
-    this.pinnedList.querySelectorAll('.rename-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.renamePinned(btn.dataset.url);
-        });
-    });
-
-    // Unpin buttons
-    this.pinnedList.querySelectorAll('.unpin-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.unpinVideo(btn.dataset.url);
-        });
-    });
+    
+    // Event listeners are now handled by setupHistoryEventDelegation()
   }
 
   renderHistory() {
@@ -1570,8 +1775,10 @@ class VayuPlayer {
     }
 
     this.recentSection.style.display = 'block';
+    
+    // Use escapeHtml to prevent XSS attacks
     this.recentList.innerHTML = unpinnedHistory.map(item => `
-        <div class="recent-item" data-url="${item.url}">
+        <div class="recent-item" data-url="${this.escapeHtml(item.url)}">
             <div class="recent-thumbnail">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 2v20M2 12h20" opacity="0.1"/>
@@ -1579,50 +1786,27 @@ class VayuPlayer {
                 </svg>
             </div>
             <div class="recent-info">
-                <div class="recent-url">${this.truncateUrl(item.url)}</div>
+                <div class="recent-url">${this.escapeHtml(this.truncateUrl(item.url))}</div>
                 <div class="recent-date">${new Date(item.timestamp).toLocaleDateString()}</div>
             </div>
             <div class="recent-actions">
-                <button class="pin-action-btn pin-btn" data-url="${item.url}" title="Pin this video">
+                <button class="pin-action-btn pin-btn" data-url="${this.escapeHtml(item.url)}" title="Pin this video">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
                 </button>
-                <button class="pin-action-btn delete delete-history-btn" data-url="${item.url}" title="Remove from history">
+                <button class="pin-action-btn delete delete-history-btn" data-url="${this.escapeHtml(item.url)}" title="Remove from history">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                 </button>
             </div>
         </div>
     `).join('');
-
-    // Play video on click
-    this.recentList.querySelectorAll('.recent-item').forEach(el => {
-        el.addEventListener('click', (e) => {
-            if (e.target.closest('.recent-actions')) return; // Ignore action button clicks
-            this.urlInput.value = el.dataset.url;
-            this.loadVideo();
-        });
-    });
-
-    // Pin buttons
-    this.recentList.querySelectorAll('.pin-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.pinVideo(btn.dataset.url);
-        });
-    });
-
-    // Delete buttons
-    this.recentList.querySelectorAll('.delete-history-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.deleteFromHistory(btn.dataset.url);
-        });
-    });
+    
+    // Event listeners are now handled by setupHistoryEventDelegation()
   }
 
   deleteFromHistory(url) {
     let history = JSON.parse(localStorage.getItem('vayu_player_history') || '[]');
     history = history.filter(item => item.url !== url);
-    localStorage.setItem('vayu_player_history', JSON.stringify(history));
+    this.safeLocalStorageSet('vayu_player_history', JSON.stringify(history));
     this.renderHistory();
     this.showToast('Removed from history');
   }
@@ -1639,6 +1823,35 @@ class VayuPlayer {
   clearHistory() {
     localStorage.removeItem('vayu_player_history');
     this.renderHistory();
+  }
+
+  /**
+   * Save current playback position
+   */
+  savePlaybackPosition(url, time) {
+    const positions = JSON.parse(localStorage.getItem('vayu_playback_positions') || '{}');
+    positions[url] = {
+        time: time,
+        timestamp: Date.now()
+    };
+    this.safeLocalStorageSet('vayu_playback_positions', JSON.stringify(positions));
+  }
+
+  /**
+   * Get saved playback position for URL
+   */
+  getPlaybackPosition(url) {
+    const positions = JSON.parse(localStorage.getItem('vayu_playback_positions') || '{}');
+    return positions[url]?.time || 0;
+  }
+
+  /**
+   * Clear playback position when video completes
+   */
+  clearPlaybackPosition(url) {
+    const positions = JSON.parse(localStorage.getItem('vayu_playback_positions') || '{}');
+    delete positions[url];
+    this.safeLocalStorageSet('vayu_playback_positions', JSON.stringify(positions));
   }
 
   showUrlSection() {
