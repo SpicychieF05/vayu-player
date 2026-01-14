@@ -1631,7 +1631,9 @@ class VayuPlayer {
 
   showPlayerSection() {
     this.urlSection.classList.add("hidden");
+    this.urlSection.style.display = 'none';
     this.playerSection.classList.add("active");
+    this.playerSection.style.display = '';
   }
 
   setupWheelControls() {
@@ -2505,9 +2507,304 @@ class VayuPlayer {
   }
 } // End Class
 
+/* --- Library Manager --- */
+class LibraryManager {
+  constructor(player) {
+    this.player = player;
+    this.STORAGE_KEY = 'vayu_shared_library';
+    this.items = [];
+    
+    // Bind DOM
+    this.section = document.getElementById('librarySection');
+    this.navBtn = document.getElementById('libraryNavBtn');
+    this.grid = document.getElementById('libraryGrid');
+    this.search = document.getElementById('librarySearch');
+    this.filters = document.getElementById('libraryFilters');
+    this.emptyState = document.getElementById('libraryEmpty');
+    
+    // Add Modal
+    this.addModal = document.getElementById('addVideoModal');
+    this.openAddBtn = document.getElementById('openAddModalBtn');
+    this.closeAddBtn = document.getElementById('closeAddVideoModal');
+    this.addForm = document.getElementById('addVideoForm');
+    this.resetBtn = document.getElementById('resetAddForm');
+    
+    this.init();
+  }
+
+  init() {
+    this.bindEvents();
+    this.loadLibrary();
+  }
+
+  bindEvents() {
+    // Navigation (Toggle Logic)
+    if(this.navBtn) {
+        this.navBtn.addEventListener('click', () => {
+             const isLibraryActive = !this.section.classList.contains('hidden');
+             if (isLibraryActive) {
+                 this.player.showUrlSection();
+             } else {
+                 this.player.showLibrarySection();
+             }
+        });
+    }
+    
+    // Add Video
+    if(this.openAddBtn) this.openAddBtn.addEventListener('click', () => this.openModal());
+    if(this.closeAddBtn) this.closeAddBtn.addEventListener('click', () => this.closeModal());
+    if(this.addModal) {
+        this.addModal.addEventListener('click', (e) => {
+            if (e.target === this.addModal) this.closeModal();
+        });
+    }
+    
+    if(this.resetBtn) this.resetBtn.addEventListener('click', () => this.addForm.reset());
+    
+    if(this.addForm) {
+        this.addForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addItem();
+        });
+    }
+    
+    // Search & Filter
+    if(this.search) this.search.addEventListener('input', () => this.render());
+    
+    if(this.filters) {
+        this.filters.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-chip')) {
+                this.filters.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                this.render();
+            }
+        });
+    }
+  }
+
+  openModal() {
+    console.log('openModal called', this.addModal);
+    if(this.addModal) {
+      this.addModal.classList.add('active');
+      console.log('Modal active class added');
+    } else {
+      console.error('Modal element not found!');
+    }
+  }
+
+  closeModal() {
+    if(this.addModal) {
+      this.addModal.classList.remove('active');
+    }
+    if(this.addForm) {
+      this.addForm.reset();
+    }
+  }
+
+  loadLibrary() {
+    // Simulate "Global" shared library using localStorage for now.
+    const saved = localStorage.getItem(this.STORAGE_KEY);
+    if (saved) {
+        try {
+            this.items = JSON.parse(saved);
+        } catch (e) {
+            console.error("Library parse error", e);
+            this.items = [];
+        }
+    } else {
+        this.items = [];
+    }
+    this.render();
+  }
+
+  saveLibrary() {
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.items));
+  }
+
+  addItem() {
+    const name = document.getElementById('addVideoName').value.trim();
+    const link = document.getElementById('addVideoLink').value.trim();
+    const type = document.getElementById('addVideoType').value;
+    const lang = document.getElementById('addVideoLang').value;
+    const user = document.getElementById('addVideoUser').value.trim() || 'Anonymous';
+    
+    if (!name || !link) return;
+    
+    const newItem = {
+        id: Date.now().toString(),
+        name,
+        link,
+        type,
+        lang,
+        user,
+        addedAt: new Date().toISOString()
+    };
+    
+    this.items.unshift(newItem); // Add to top
+    this.saveLibrary();
+    this.closeModal();
+    this.render();
+    this.player.showToast('Video added to Library');
+  }
+
+  render() {
+    if(!this.grid) return;
+    
+    const query = this.search ? this.search.value.toLowerCase() : '';
+    const activeFilterEl = this.filters ? this.filters.querySelector('.active') : null;
+    const activeFilter = activeFilterEl ? activeFilterEl.dataset.filter : 'all';
+    
+    // Filter items
+    const filtered = this.items.filter(item => {
+        const matchesSearch = item.name.toLowerCase().includes(query) || 
+                              (item.user && item.user.toLowerCase().includes(query));
+        const matchesType = activeFilter === 'all' || item.type === activeFilter;
+        return matchesSearch && matchesType;
+    });
+    
+    this.grid.innerHTML = '';
+    
+    if (filtered.length === 0) {
+        if(this.emptyState) this.emptyState.classList.remove('hidden');
+    } else {
+        if(this.emptyState) this.emptyState.classList.add('hidden');
+        filtered.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'library-card';
+            card.dataset.type = item.type;
+            card.innerHTML = `
+                <div class="lib-card-content">
+                    <div class="lib-card-header">
+                        <h3 class="lib-card-title" title="${this.player.escapeHtml(item.name)}">${this.player.escapeHtml(item.name)}</h3>
+                        <div class="lib-card-meta">
+                            <span class="lib-badge">${item.type}</span>
+                            <span>•</span>
+                            <span>${item.lang}</span>
+                        </div>
+                    </div>
+                    <div class="lib-card-footer">
+                        <span class="lib-user">Added by ${this.player.escapeHtml(item.user)}</span>
+                        <div class="lib-play-icon">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            card.addEventListener('click', () => {
+                this.player.urlInput.value = item.link;
+                this.player.loadVideo();
+            });
+            
+            this.grid.appendChild(card);
+        });
+    }
+  }
+}
+
 // Initialize player when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
   window.vayuPlayer = new VayuPlayer();
+  
+  // Inject showLibrarySection method
+  window.vayuPlayer.showLibrarySection = function() {
+      // Hide other sections
+      if(this.urlSection) {
+          this.urlSection.classList.add('hidden');
+          this.urlSection.style.display = 'none';
+      }
+      if(this.playerSection) {
+          this.playerSection.classList.remove('active');
+          this.playerSection.style.display = 'none';
+      }
+      if(this.pinnedSection) this.pinnedSection.style.display = 'none';
+      
+      // Show library
+      const libSec = document.getElementById('librarySection');
+      if(libSec) libSec.classList.remove('hidden');
+      if(libSec) libSec.style.display = 'block'; 
+      
+      // Update Button to "Home"
+      const btn = document.getElementById('libraryNavBtn');
+      if(btn) {
+          btn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span>Home</span>
+          `;
+      }
+      
+      this.hideError();
+  };
+  
+  // Patch showUrlSection to hide library
+  const originalShowUrl = window.vayuPlayer.showUrlSection.bind(window.vayuPlayer);
+  window.vayuPlayer.showUrlSection = function() {
+      // Call original method first
+      originalShowUrl();
+      
+      // Reset urlSection display (in case it was set to none by showLibrarySection)
+      if(this.urlSection) {
+          this.urlSection.style.display = '';
+      }
+      
+      // Then hide library section
+      const libSec = document.getElementById('librarySection');
+      if(libSec) {
+          libSec.classList.add('hidden');
+          libSec.style.display = 'none';
+      }
+      
+      // Update Button to "Library"
+      const btn = document.getElementById('libraryNavBtn');
+      if(btn) {
+          btn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            <span>Library</span>
+          `;
+      }
+  };
+  
+  // Patch showPlayerSection to hide library
+  const originalShowPlayer = window.vayuPlayer.showPlayerSection;
+  window.vayuPlayer.showPlayerSection = function() {
+      // Call original first to set up player section properly
+      if(originalShowPlayer) originalShowPlayer.call(window.vayuPlayer);
+      
+      // Then hide library
+      const libSec = document.getElementById('librarySection');
+      if(libSec) {
+          libSec.classList.add('hidden');
+          libSec.style.display = 'none';
+      }
+      
+      // Make sure player section is visible
+      if(this.playerSection) {
+          this.playerSection.classList.add('active');
+          this.playerSection.style.display = '';
+      }
+      
+      // Update Button to "Library"
+      const btn = document.getElementById('libraryNavBtn');
+      if(btn) {
+          btn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            <span>Library</span>
+          `;
+      }
+  };
+  
+  // Init library
+  window.vayuPlayer.library = new LibraryManager(window.vayuPlayer);
+
   // Init captions and audio tracks
   window.vayuPlayer.setupCaptions();
   window.vayuPlayer.setupAudioTracks();
