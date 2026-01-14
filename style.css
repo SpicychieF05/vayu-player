@@ -1367,77 +1367,110 @@ body {
   position: absolute;
   inset: 0;
   display: none;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px); /* Add slight blur to background */
   z-index: 30;
+  animation: fadeIn 0.3s ease-out;
 }
 
 .error-overlay.active {
   display: flex;
 }
 
-.error-overlay svg {
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px;
+  background: rgba(28, 28, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  max-width: 90%;
+  width: 400px;
+  text-align: center;
+  animation: scaleIn 0.3s ease-out;
+}
+
+.error-content svg {
   width: 64px;
   height: 64px;
   color: var(--error);
+  margin-bottom: 8px;
 }
 
 .error-text {
   font-size: 1rem;
   color: var(--text-secondary);
-  text-align: center;
-  white-space: pre-line;
   line-height: 1.6;
-  max-width: 400px;
+  white-space: pre-line;
 }
 
 .retry-btn {
-  padding: 12px 24px;
+  padding: 12px 32px;
   background: var(--bg-tertiary);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--text-primary);
   cursor: pointer;
   transition: all var(--transition-normal);
+  min-width: 140px;
 }
 
 .retry-btn:hover {
   background: var(--bg-elevated);
   border-color: var(--accent-primary);
+  transform: translateY(-2px);
 }
 
-/* Back Button */
-.back-btn {
+/* Player Back Button */
+.player-back-btn {
+  position: absolute;
+  top: 24px;
+  left: 24px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 20px;
-  padding: 10px 20px;
-  background: transparent;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-md);
-  font-family: inherit;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
+  border-radius: 50%; /* Circular button */
+  color: var(--text-primary);
   cursor: pointer;
+  z-index: 30;
+  opacity: 0;
+  transform: translateY(-10px);
   transition: all var(--transition-normal);
 }
 
-.back-btn svg {
-  width: 18px;
-  height: 18px;
+.player-back-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
 }
 
-.back-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: var(--text-primary);
+.player-back-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(0) scale(1.1);
+}
+
+/* Show back button with controls */
+.player-container:hover .player-back-btn,
+.player-container.show-controls .player-back-btn {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Shortcuts Modal */
