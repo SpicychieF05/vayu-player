@@ -1975,9 +1975,8 @@ class VayuPlayer {
     };
 
     const hideSettings = () => {
-        hoverTimeout = setTimeout(() => {
-            this.captionSettingsModal.classList.remove("active");
-        }, 300); // Small delay to allow moving mouse to modal
+        clearTimeout(hoverTimeout);
+        this.captionSettingsModal.classList.remove("active");
     };
 
     this.ccBtn.addEventListener("mouseenter", showSettings);
