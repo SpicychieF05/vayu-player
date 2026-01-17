@@ -1,4 +1,5 @@
 import { escapeHtml } from '../common/utils.js';
+import { supabase } from '../common/supabase.js';
 import { AddVideoModal } from './add-modal.js';
 
 export class LibraryManager {
@@ -52,40 +53,65 @@ export class LibraryManager {
     }
   }
 
-  loadLibrary() {
-    const saved = localStorage.getItem(this.STORAGE_KEY);
-    if (saved) {
-        try {
-            this.items = JSON.parse(saved);
-        } catch (e) {
-            console.error("Library parse error", e);
-            this.items = [];
-        }
-    } else {
+  async loadLibrary() {
+    if (!supabase) {
+        console.warn('Supabase not initialized, falling back to local storage or empty.');
+        // Fallback or just empty
         this.items = [];
+        this.render();
+        return;
     }
+
+    const { data, error } = await supabase
+        .from('videos')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error loading library:', error);
+        if(this.player.showToast) this.player.showToast('Failed to load library');
+        return;
+    }
+
+    this.items = data || [];
     this.render();
   }
 
-  saveLibrary() {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.items));
-  }
+  // saveLibrary removed as we sync with DB
 
-  addItem({ name, link, type, lang, user }) {
+  async addItem({ name, link, type, lang, user }) {
+    if (!supabase) {
+        alert("Database connection not available.");
+        return;
+    }
+
     const newItem = {
-        id: Date.now().toString(),
         name,
         link,
         type,
         lang,
-        user,
-        addedAt: new Date().toISOString()
+        user, // Storing 'user' to match existing code usage, could be mapped to username column
     };
     
-    this.items.unshift(newItem); // Add to top
-    this.saveLibrary();
-    this.render();
-    if(this.player.showToast) this.player.showToast('Video added to Library');
+    const { data, error } = await supabase
+        .from('videos')
+        .insert([newItem])
+        .select();
+
+    if (error) {
+        console.error('Error adding item:', error);
+        if(this.player.showToast) this.player.showToast('Failed to add video: ' + error.message);
+    } else {
+        // Add to local list immediately to update UI without reload
+        if (data && data[0]) {
+            this.items.unshift(data[0]);
+        }
+        this.render();
+        if(this.player.showToast) this.player.showToast('Video added to Library');
+        
+        // Close modal if reference exists
+        if(this.addModal && this.addModal.close) this.addModal.close();
+    }
   }
 
   render() {

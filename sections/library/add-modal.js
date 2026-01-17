@@ -48,6 +48,6 @@ export class AddVideoModal {
     if (!name || !link) return;
 
     this.libraryManager.addItem({ name, link, type, lang, user });
-    this.close();
+    // Modal will be closed by libraryManager on success
   }
 }
