@@ -210,10 +210,14 @@ export class HomeManager {
         // Play
         const url = item.dataset.url;
         if (url) {
-            // this.player.urlInput.value = url;
-            // this.player.loadVideo();
-            // Use loadDirectVideo if available
-            if(this.player.loadDirectVideo) this.player.loadDirectVideo(url);
+            // Load and play the video
+            if(this.player.loadDirectVideo) {
+                this.player.loadDirectVideo(url);
+                // Show the player section
+                if(this.player.showPlayerSection) {
+                    this.player.showPlayerSection();
+                }
+            }
         }
     }
 
@@ -242,7 +246,14 @@ export class HomeManager {
         // Play
         const url = item.dataset.url;
         if (url) {
-             if(this.player.loadDirectVideo) this.player.loadDirectVideo(url);
+            // Load and play the video
+            if(this.player.loadDirectVideo) {
+                this.player.loadDirectVideo(url);
+                // Show the player section
+                if(this.player.showPlayerSection) {
+                    this.player.showPlayerSection();
+                }
+            }
         }
     }
 
