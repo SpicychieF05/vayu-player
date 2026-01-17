@@ -112,6 +112,11 @@ export class VayuPlayer {
     // Playback position tracking
     this.lastSavedSecond = -1;
 
+    // Video title display
+    this.videoTitleOverlay = document.getElementById('videoTitleOverlay');
+    this.videoTitleText = document.getElementById('videoTitleText');
+    this.currentVideoTitle = '';
+
     this.init();
   }
 
@@ -534,6 +539,9 @@ export class VayuPlayer {
     this.video.src = url;
     this.video.load();
 
+    // Extract and display video title
+    this.setVideoTitle(this.extractVideoTitle(url));
+
     // Detect embedded audio tracks and subtitles when metadata loads
     const detectTracks = () => {
       console.log('🎬 Video metadata loaded, checking for embedded tracks...');
@@ -564,6 +572,60 @@ export class VayuPlayer {
         this.video.load();
       }
     }, 10000); // 10 second timeout
+  }
+
+  extractVideoTitle(url) {
+    try {
+      const urlObj = new URL(url);
+      const pathname = decodeURIComponent(urlObj.pathname);
+      
+      // Extract filename from path
+      const filename = pathname.split('/').pop();
+      
+      // Remove file extension
+      const nameWithoutExt = filename.replace(/\.(mkv|mp4|avi|webm|m3u8|mpd|mov|flv)$/i, '');
+      
+      // Clean up the title
+      let cleanTitle = nameWithoutExt
+        // Remove quality indicators
+        .replace(/\b(1080p|720p|480p|360p|2160p|4K|UHD|HD|SD)\b/gi, '')
+        // Remove codec info
+        .replace(/\b(x264|x265|HEVC|H\.264|H\.265|10bit|8bit)\b/gi, '')
+        // Remove source info
+        .replace(/\b(BluRay|BRRip|WEB-DL|WEBRip|HDTV|DVDRip|BDRip)\b/gi, '')
+        // Remove audio info in brackets
+        .replace(/\[.*?(DD|DTS|AAC|AC3|Atmos).*?\]/gi, '')
+        // Remove release group tags
+        .replace(/[-_.]\w+$/g, '')
+        // Replace dots, underscores, and multiple spaces
+        .replace(/[._]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      // If title is too long, truncate intelligently
+      if (cleanTitle.length > 60) {
+        // Try to find year and cut after it
+        const yearMatch = cleanTitle.match(/\b(19|20)\d{2}\b/);
+        if (yearMatch) {
+          const yearIndex = cleanTitle.indexOf(yearMatch[0]);
+          cleanTitle = cleanTitle.substring(0, yearIndex + 4).trim();
+        } else {
+          cleanTitle = cleanTitle.substring(0, 60).trim() + '...';
+        }
+      }
+      
+      return cleanTitle || 'Unknown Video';
+    } catch (e) {
+      console.error('Error extracting title:', e);
+      return 'Unknown Video';
+    }
+  }
+
+  setVideoTitle(title) {
+    this.currentVideoTitle = title;
+    if (this.videoTitleText) {
+      this.videoTitleText.textContent = title;
+    }
   }
 
   async checkRangeRequestSupport(url) {
