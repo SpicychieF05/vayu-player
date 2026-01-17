@@ -1,5 +1,5 @@
-import { supabase } from '../sections/common/supabase.js';
-import { escapeHtml } from '../sections/common/utils.js';
+import { supabase } from '/sections/common/supabase.js';
+import { escapeHtml } from '/sections/common/utils.js';
 
 // Credentials
 const ADMIN_ID = "admin_chirantan_codiverse";
