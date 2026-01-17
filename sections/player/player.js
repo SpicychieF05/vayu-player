@@ -387,11 +387,15 @@ export class VayuPlayer {
       this.isPlaying = true;
       this.playerContainer.classList.add("playing");
       this.playOverlay.classList.add("hidden");
+      // Hide controls immediately when playback starts
+      this.hideControls();
     });
 
     this.video.addEventListener("pause", () => {
       this.isPlaying = false;
       this.playerContainer.classList.remove("playing");
+      // Show controls when paused
+      this.showControls();
       // Continue buffering even when paused - browser handles this
       // but we update the UI to show buffer progress
       this.updateBuffer();
@@ -848,6 +852,56 @@ export class VayuPlayer {
       });
     } else {
       this.video.pause();
+    }
+  }
+
+  showControls() {
+    // Add class to show controls
+    this.playerContainer.classList.add('show-controls');
+    
+    // Show cursor
+    this.playerContainer.style.cursor = 'default';
+    
+    // Clear existing timeouts
+    if (this.controlsTimeout) {
+      clearTimeout(this.controlsTimeout);
+    }
+    if (this.cursorTimeout) {
+      clearTimeout(this.cursorTimeout);
+    }
+    
+    // Only auto-hide if video is playing
+    if (this.isPlaying) {
+      // Hide controls after 3 seconds of no mouse movement
+      this.controlsTimeout = setTimeout(() => {
+        this.hideControls();
+      }, 3000);
+      
+      // Hide cursor after 2 seconds of no mouse movement
+      this.cursorTimeout = setTimeout(() => {
+        this.playerContainer.style.cursor = 'none';
+      }, 2000);
+    }
+  }
+
+  /**
+   * Hide controls
+   */
+  hideControls() {
+    // Only hide if playing
+    if (this.isPlaying) {
+      this.playerContainer.classList.remove('show-controls');
+      this.playerContainer.style.cursor = 'none';
+    }
+    
+    // Clear timeouts
+    if (this.controlsTimeout) {
+      clearTimeout(this.controlsTimeout);
+      this.controlsTimeout = null;
+    }
+    if (this.cursorTimeout) {
+      clearTimeout(this.cursorTimeout);
+      this.cursorTimeout = null;
     }
   }
 
