@@ -1740,12 +1740,16 @@ export class VayuPlayer {
     
     const showSettings = () => {
         clearTimeout(hoverTimeout);
-        this.openCaptionSettings();
+        hoverTimeout = setTimeout(() => {
+            this.openCaptionSettings();
+        }, 300); // 300ms delay before showing
     };
 
     const hideSettings = () => {
         clearTimeout(hoverTimeout);
-        this.captionSettingsModal.classList.remove("active");
+        hoverTimeout = setTimeout(() => {
+            this.captionSettingsModal.classList.remove("active");
+        }, 200); // 200ms delay before hiding
     };
 
     this.ccBtn.addEventListener("mouseenter", showSettings);
