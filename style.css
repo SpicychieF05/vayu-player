@@ -842,8 +842,20 @@ body {
   z-index: 20;
 }
 
-.player-container:hover .video-title-overlay,
-.player-container.show-controls .video-title-overlay {
+/* Show title overlay when not playing */
+.player-container:not(.playing) .video-title-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hide by default when playing */
+.player-container.playing .video-title-overlay {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* Show when controls are active (higher specificity to override playing state) */
+.player-container.playing.show-controls .video-title-overlay {
   opacity: 1;
   transform: translateY(0);
 }
@@ -925,8 +937,20 @@ body {
   z-index: 25;
 }
 
-.player-container:hover .controls,
-.player-container.show-controls .controls {
+/* Show controls when not playing */
+.player-container:not(.playing) .controls {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hide by default when playing */
+.player-container.playing .controls {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* Show when controls are active (higher specificity to override playing state) */
+.player-container.playing.show-controls .controls {
   opacity: 1;
   transform: translateY(0);
 }
@@ -1599,9 +1623,20 @@ body {
   transform: translateY(0) scale(1.1);
 }
 
-/* Show back button with controls */
-.player-container:hover .player-back-btn,
-.player-container.show-controls .player-back-btn {
+/* Show back button when not playing */
+.player-container:not(.playing) .player-back-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hide by default when playing */
+.player-container.playing .player-back-btn {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Show when controls are active (higher specificity to override playing state) */
+.player-container.playing.show-controls .player-back-btn {
   opacity: 1;
   transform: translateY(0);
 }
