@@ -2517,12 +2517,13 @@ video::cue {
 
 /* Add Video Modal Specifics */
 .add-video-modal {
-    max-width: 500px;
+    max-width: 650px;
+    width: 68%;
 }
 
 .form-row {
     display: flex;
-    gap: 16px;
+    gap: 24px;
 }
 
 .form-row .form-group {
@@ -2592,7 +2593,7 @@ video::cue {
 }
 
 .modal-content {
-    background: var(--bg-surface);
+    background: var(--bg-elevated);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-lg);
     padding: 0;
@@ -2618,7 +2619,7 @@ video::cue {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px;
+    padding: 32px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -2645,12 +2646,12 @@ video::cue {
 }
 
 .modal-body {
-    padding: 24px;
+    padding: 32px;
 }
 
 /* Form Styles */
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .form-group label {
@@ -2678,6 +2679,16 @@ video::cue {
     font-family: inherit;
     font-size: 0.95rem;
     transition: all var(--transition-fast);
+}
+
+.form-group select {
+    background-color: #1C1C1E;
+    color: #FFFFFF;
+}
+
+.form-group select option {
+    background-color: #1C1C1E;
+    color: #FFFFFF;
 }
 
 .form-group input:focus,
