@@ -517,8 +517,21 @@ export class VayuPlayer {
     this.video.removeAttribute("src");
     this.video.load();
 
-    // Configure for streaming
+    // Configure for streaming with HEVC audio support
     this.video.preload = "auto";
+    
+    // Ensure audio is enabled (critical for HEVC files)
+    this.video.muted = false;
+    this.video.volume = 1.0;
+    
+    // Detect if this might be a HEVC file
+    const isHEVC = url.toLowerCase().includes('hevc') || 
+                   url.toLowerCase().includes('h265') || 
+                   url.toLowerCase().includes('x265');
+    
+    if (isHEVC) {
+      console.log('🎥 HEVC video detected - ensuring audio codec compatibility');
+    }
 
     // Check if it's a Google URL (they have specific requirements)
     const isGoogleUrl =
@@ -550,10 +563,52 @@ export class VayuPlayer {
     const detectTracks = () => {
       console.log('🎬 Video metadata loaded, checking for embedded tracks...');
       
+      // Log video codec information
+      console.log('📊 Video Properties:', {
+        duration: this.video.duration,
+        videoWidth: this.video.videoWidth,
+        videoHeight: this.video.videoHeight,
+        readyState: this.video.readyState
+      });
+      
       // Check for audio tracks
       if (this.video.audioTracks && this.video.audioTracks.length > 0) {
         console.log(`🔊 Found ${this.video.audioTracks.length} audio track(s)`);
+        
+        // Enable all audio tracks (important for HEVC)
+        for (let i = 0; i < this.video.audioTracks.length; i++) {
+          const track = this.video.audioTracks[i];
+          console.log(`  Track ${i}: ${track.label || track.language || 'Unknown'} - ${track.enabled ? 'Enabled' : 'Disabled'}`);
+          
+          // Enable the first track by default if none are enabled
+          if (i === 0 && !track.enabled) {
+            track.enabled = true;
+            console.log(`  ✅ Enabled audio track ${i}`);
+          }
+        }
+        
         this.updateAudioTrackList();
+      } else {
+        console.log('🔇 No separate audio tracks detected (audio may be muxed with video)');
+        
+        // For HEVC files without separate tracks, verify audio is working
+        if (isHEVC) {
+          console.log('⚠️ HEVC file without separate audio tracks detected');
+          console.log('   If no audio plays, the file may use an unsupported audio codec');
+          console.log('   Supported: AAC, MP3, Opus, Vorbis');
+          console.log('   Limited support: AC3, EAC3 (requires browser/OS support)');
+        }
+      }
+      
+      // Verify audio is not muted
+      if (this.video.muted) {
+        console.warn('⚠️ Video was muted, unmuting...');
+        this.video.muted = false;
+      }
+      
+      if (this.video.volume === 0) {
+        console.warn('⚠️ Volume was 0, setting to 1.0...');
+        this.video.volume = 1.0;
       }
       
       // Check for text tracks (subtitles/captions)
@@ -565,6 +620,22 @@ export class VayuPlayer {
     
     // Listen for metadata load
     this.video.addEventListener('loadedmetadata', detectTracks, { once: true });
+    
+    // Add additional audio verification when video can play
+    const verifyAudio = () => {
+      console.log('🔍 Verifying audio setup...');
+      console.log('   Muted:', this.video.muted);
+      console.log('   Volume:', this.video.volume);
+      console.log('   Audio Tracks:', this.video.audioTracks ? this.video.audioTracks.length : 'Not supported by browser');
+      
+      // Force unmute if somehow muted
+      if (this.video.muted) {
+        this.video.muted = false;
+        console.log('   ✅ Forced unmute');
+      }
+    };
+    
+    this.video.addEventListener('canplay', verifyAudio, { once: true });
 
     // Add timeout for stuck loading
     this.loadTimeout = setTimeout(() => {

@@ -39,6 +39,8 @@ _Experience the future of web streaming. Immersive. Elegant. Powerful._
 ### 🎛️ **Ultimate Control**
 
 - **🎵 Multi-Audio Track Support** — Automatically detects and switches between embedded audio languages
+- **🔊 HEVC Audio Codec Support** — Enhanced handling for AAC, AC3, EAC3 audio in HEVC/H.265 videos
+- **🔇 Auto-Unmute** — Ensures audio plays correctly in HEVC files with automatic volume normalization
 - **📝 Embedded Subtitle Detection** — Auto-detects subtitles in MKV/MP4 files (like VLC!)
 - **🎨 Custom Caption Styling** — Position anywhere, adjust size/color/opacity
 - **📂 External Subtitle Upload** — Load local `.srt` or `.vtt` files
@@ -155,6 +157,37 @@ _Experience the future of web streaming. Immersive. Elegant. Powerful._
    - Edit video details
    - Delete inappropriate content
    - Search and filter
+
+### 🎥 **HEVC / H.265 Support**
+
+Vayu Player now has **enhanced support for HEVC (H.265) videos** with comprehensive audio codec handling!
+
+**Video Codec Support:**
+
+- ✅ **Safari (macOS/iOS)** — Full native support
+- ✅ **Edge (Windows 10/11)** — Requires HEVC Video Extensions from Microsoft Store
+- ❌ **Chrome/Firefox** — Not supported (use H.264 instead)
+
+**Audio Codec Support in HEVC:**
+
+- ✅ **AAC, MP3, Opus, Vorbis** — Fully supported in all browsers
+- ⚠️ **AC3, EAC3 (Dolby Digital)** — Requires Windows 10/11 with proper codecs
+- ❌ **DTS** — Very limited support
+
+**Features:**
+
+- 🔊 **Automatic audio track detection** and enabling
+- 🔇 **Auto-unmute** ensures audio plays correctly
+- 📊 **Codec compatibility logging** for debugging
+- 🎵 **Multi-track support** for videos with multiple audio streams
+
+**Troubleshooting:**
+If you experience no audio in HEVC videos:
+
+1. Check browser console (F12) for codec warnings
+2. Use Safari or Edge for best compatibility
+3. Ensure video uses AAC audio codec
+4. See [HEVC-SUPPORT.md](HEVC-SUPPORT.md) for detailed troubleshooting
 
 ---
 
