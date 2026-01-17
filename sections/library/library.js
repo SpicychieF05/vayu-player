@@ -159,12 +159,20 @@ export class LibraryManager {
             `;
             
             card.addEventListener('click', () => {
-                // Assuming player has loadDirectVideo
+                // Set the URL in the input field
+                if (this.player.urlInput) {
+                    this.player.urlInput.value = item.link;
+                }
+                
+                // Load and play the video
                 if (typeof this.player.loadDirectVideo === 'function') {
                     this.player.loadDirectVideo(item.link);
-                } else if (this.player.urlInput) {
-                    this.player.urlInput.value = item.link;
-                    if(this.player.loadVideo) this.player.loadVideo();
+                    // Show the player section
+                    if (typeof this.player.showPlayerSection === 'function') {
+                        this.player.showPlayerSection();
+                    }
+                } else if (this.player.loadVideo) {
+                    this.player.loadVideo();
                 }
             });
             
