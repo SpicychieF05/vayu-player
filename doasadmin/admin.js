@@ -2,8 +2,8 @@ import { supabase } from '/sections/common/supabase.js';
 import { escapeHtml } from '/sections/common/utils.js';
 
 // Credentials
-const ADMIN_ID = "admin_chirantan_codiverse";
-const ADMIN_PASS = "codiverse_chirantan";
+const ADMIN_ID = "Admin@codiverse_vayu";
+const ADMIN_PASS = "Chirantan@codiverse";
 
 // State
 let items = [];
@@ -25,20 +25,31 @@ function checkLogin() {
 
 function bindEvents() {
     // Login
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const id = document.getElementById('adminId').value;
-        const pass = document.getElementById('adminPass').value;
+    // Login
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Stop form from submitting and adding ? to URL
+            
+            const id = document.getElementById('adminId').value;
+            const pass = document.getElementById('adminPass').value;
 
-        if (id === ADMIN_ID && pass === ADMIN_PASS) {
-            sessionStorage.setItem('vayu_admin_logged_in', 'true');
-            showDashboard();
-        } else {
-            const err = document.getElementById('loginError');
-            err.classList.remove('hidden');
-            setTimeout(() => err.classList.add('hidden'), 3000);
-        }
-    });
+            if (id === ADMIN_ID && pass === ADMIN_PASS) {
+                sessionStorage.setItem('vayu_admin_logged_in', 'true');
+                showDashboard();
+                // Clean URL if it has a query string
+                if (window.location.search) {
+                     window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            } else {
+                const err = document.getElementById('loginError');
+                if(err) {
+                    err.classList.remove('hidden');
+                    setTimeout(() => err.classList.add('hidden'), 3000);
+                }
+            }
+        });
+    }
 
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', () => {
