@@ -534,6 +534,26 @@ export class VayuPlayer {
     this.video.src = url;
     this.video.load();
 
+    // Detect embedded audio tracks and subtitles when metadata loads
+    const detectTracks = () => {
+      console.log('🎬 Video metadata loaded, checking for embedded tracks...');
+      
+      // Check for audio tracks
+      if (this.video.audioTracks && this.video.audioTracks.length > 0) {
+        console.log(`🔊 Found ${this.video.audioTracks.length} audio track(s)`);
+        this.updateAudioTrackList();
+      }
+      
+      // Check for text tracks (subtitles/captions)
+      if (this.video.textTracks && this.video.textTracks.length > 0) {
+        console.log(`📝 Found ${this.video.textTracks.length} subtitle track(s)`);
+        this.updateSubtitleList();
+      }
+    };
+    
+    // Listen for metadata load
+    this.video.addEventListener('loadedmetadata', detectTracks, { once: true });
+
     // Add timeout for stuck loading
     this.loadTimeout = setTimeout(() => {
       if (this.video.readyState < 2) {
@@ -2127,6 +2147,84 @@ export class VayuPlayer {
           audioTracks[trackIndex].enabled = true;
           this.showToast(`Audio: ${audioTracks[trackIndex].label || audioTracks[trackIndex].language || 'Track ' + (trackIndex + 1)}`);
       }
+  }
+
+  updateSubtitleList() {
+      console.log('📝 Updating subtitle list from embedded tracks...');
+      
+      const textTracks = this.video.textTracks;
+      if (!textTracks || textTracks.length === 0) {
+          console.log('No embedded subtitles found');
+          return;
+      }
+
+      // Enable the caption button to show tracks are available
+      const captionBtn = document.getElementById('captionBtn');
+      if (captionBtn) {
+          captionBtn.classList.add('active');
+      }
+
+      console.log(`Found ${textTracks.length} subtitle track(s):`);
+      
+      // Log all available tracks
+      for (let i = 0; i < textTracks.length; i++) {
+          const track = textTracks[i];
+          console.log(`  - Track ${i}: ${track.label || track.language || 'Unknown'} (${track.kind})`);
+          
+          // Set mode to 'hidden' initially so they're loaded but not shown
+          track.mode = 'hidden';
+          
+          // Listen for cue changes to enable custom rendering if needed
+          track.addEventListener('cuechange', () => {
+              if (track.mode === 'showing' && track.activeCues && track.activeCues.length > 0) {
+                  // Subtitles are active
+                  console.log('Active subtitle:', track.activeCues[0].text);
+              }
+          });
+      }
+
+      // If there's a subtitle selector in your UI, populate it
+      // (You may need to add this UI element if it doesn't exist)
+      this.populateSubtitleSelector(textTracks);
+  }
+
+  populateSubtitleSelector(textTracks) {
+      // Check if you have a subtitle selector element
+      const subtitleSelect = document.getElementById('subtitleSelect');
+      if (!subtitleSelect) {
+          console.log('No subtitle selector found in UI');
+          return;
+      }
+
+      // Clear existing options
+      subtitleSelect.innerHTML = '<option value="-1">Off</option>';
+
+      // Add each track as an option
+      for (let i = 0; i < textTracks.length; i++) {
+          const track = textTracks[i];
+          const option = document.createElement('option');
+          option.value = i;
+          option.textContent = track.label || track.language || `Subtitle ${i + 1}`;
+          subtitleSelect.appendChild(option);
+      }
+
+      // Listen for selection changes
+      subtitleSelect.addEventListener('change', (e) => {
+          const selectedIndex = parseInt(e.target.value);
+          
+          // Hide all tracks
+          for (let i = 0; i < textTracks.length; i++) {
+              textTracks[i].mode = 'hidden';
+          }
+
+          // Show selected track
+          if (selectedIndex >= 0 && selectedIndex < textTracks.length) {
+              textTracks[selectedIndex].mode = 'showing';
+              this.showToast(`Subtitles: ${textTracks[selectedIndex].label || textTracks[selectedIndex].language || 'On'}`);
+          } else {
+              this.showToast('Subtitles: Off');
+          }
+      });
   }
 
   setHLSAudioTrack(trackIndex) {
